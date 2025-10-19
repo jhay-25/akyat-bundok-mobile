@@ -42,26 +42,17 @@ const LatestClimbsScreen: React.FC = () => {
         }/api/public/logs/latest?page=${pageNum}${
           pageNum === 1 ? '&count=true' : ''
         }`
-        console.log('Fetching logs from:', url)
 
         const response = await fetch(url)
 
         if (!response.ok) {
           const errorText = await response.text()
-          console.error('Fetch error:', response.status, errorText)
           throw new Error(
             `Failed to fetch logs: ${response.status} ${response.statusText}`
           )
         }
 
         const data = await response.json()
-        console.log('Received data:', data)
-        console.log(
-          'Logs count:',
-          data.logs?.length,
-          'Total count:',
-          data.count
-        )
 
         const newLogs = (data.logs || []) as ClimbLog[]
 
@@ -83,12 +74,9 @@ const LatestClimbsScreen: React.FC = () => {
             (data.count ? logs.length + newLogs.length < data.count : true)
         )
         setError(null)
-
-        console.log('Successfully loaded', newLogs.length, 'logs')
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'An error occurred'
-        console.error('Error fetching logs:', errorMessage, err)
         setError(errorMessage)
         Alert.alert(
           'Error Loading Climbs',

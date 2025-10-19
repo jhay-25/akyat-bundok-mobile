@@ -52,20 +52,12 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 
     if (error) {
       Alert.alert('Sign Up Failed', error.message)
+      setLoading(false)
     } else {
-      Alert.alert(
-        'Account Created!',
-        'Please check your email to verify your account.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('SignIn')
-          }
-        ]
-      )
+      // Navigate to username setup screen
+      navigation.navigate('UsernameSetup')
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
