@@ -34,6 +34,9 @@ yarn-error.*
 .env*.local
 .env
 
+# MCP configuration (contains project-specific URLs)
+.vscode/mcp.json
+
 # typescript
 *.tsbuildinfo
 
