@@ -91,6 +91,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your email"
+                placeholderTextColor="#886439"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -104,6 +105,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your password"
+                placeholderTextColor="#886439"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -116,6 +118,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Confirm your password"
+                placeholderTextColor="#886439"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -154,7 +157,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#151728' // main-500 (dark background)
   },
   keyboardAvoidingView: {
     flex: 1
@@ -171,12 +174,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F9F6F2', // brown-10 (light text)
     marginBottom: 8
   },
   subtitle: {
     fontSize: 16,
-    color: '#666'
+    color: '#CDAD87' // brown-50 (light text)
   },
   form: {
     marginBottom: 40
@@ -187,17 +190,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#F9F6F2', // brown-10 (light text)
     marginBottom: 8
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#24273b', // main-400 (dark input)
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#886439', // brown-800 (dark border)
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
+    color: '#F9F6F2', // brown-10 (light text)
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -208,7 +212,7 @@ const styles = StyleSheet.create({
     elevation: 2
   },
   signUpButton: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#ae8048', // brown-500
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
@@ -238,11 +242,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 16,
-    color: '#666'
+    color: '#CDAD87' // brown-50 (light text)
   },
   linkText: {
     fontSize: 16,
-    color: '#8B4513',
+    color: '#ae8048', // brown-500
     fontWeight: '600'
   }
 })

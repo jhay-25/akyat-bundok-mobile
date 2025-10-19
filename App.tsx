@@ -57,11 +57,11 @@ const AppNavigator = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />
         },
-        tabBarActiveTintColor: '#8B4513',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#ae8048', // brown-500
+        tabBarInactiveTintColor: '#886439', // brown-800
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#e0e0e0',
+          backgroundColor: '#24273b', // main-400 (dark tab bar)
+          borderTopColor: '#886439', // brown-800
           borderTopWidth: 1,
         },
       })}
@@ -86,7 +86,7 @@ const AppContent = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B4513" />
+        <ActivityIndicator size="large" color="#ae8048" />
       </View>
     )
   }
@@ -100,7 +100,7 @@ export default function App() {
       <AuthProvider>
         <NavigationContainer>
           <AppContent />
-          <StatusBar style="auto" />
+          <StatusBar style="light" />
         </NavigationContainer>
       </AuthProvider>
     </GestureHandlerRootView>
@@ -112,6 +112,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#151728' // main-500 (dark background)
   }
 })

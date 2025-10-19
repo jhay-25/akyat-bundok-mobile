@@ -43,7 +43,7 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#151728' // main-500 (dark background)
   },
   content: {
     flex: 1,
@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F9F6F2', // brown-10 (light text)
     marginBottom: 8,
     textAlign: 'center'
   },
   subtitle: {
     fontSize: 18,
-    color: '#666',
+    color: '#CDAD87', // brown-50 (light text)
     textAlign: 'center'
   },
   body: {
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     fontSize: 16,
-    color: '#555',
+    color: '#F4EDE4', // brown-20 (light text)
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 24

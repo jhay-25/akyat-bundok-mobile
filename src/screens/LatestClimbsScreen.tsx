@@ -135,7 +135,7 @@ const LatestClimbsScreen: React.FC = () => {
     if (!loadingMore) return null
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#8B4513" />
+        <ActivityIndicator size="small" color="#ae8048" />
       </View>
     )
   }
@@ -156,7 +156,7 @@ const LatestClimbsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B4513" />
+        <ActivityIndicator size="large" color="#ae8048" />
         <Text style={styles.loadingText}>Loading latest climbs...</Text>
       </View>
     )
@@ -281,47 +281,47 @@ const LogCard: React.FC<LogCardProps> = ({ log }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#151728' // main-500 (dark background)
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#151728' // main-500
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666'
+    color: '#CDAD87' // brown-50 (light text on dark)
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#24273b', // main-400 (slightly lighter dark)
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0'
+    borderBottomColor: '#886439' // brown-800
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F9F6F2', // brown-10 (light text)
     marginBottom: 8
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#CDAD87', // brown-50
     lineHeight: 20
   },
   errorContainer: {
-    backgroundColor: '#fee',
+    backgroundColor: '#F4EDE4', // brown-20
     padding: 12,
     marginHorizontal: 20,
     marginTop: 12,
     borderRadius: 8
   },
   errorText: {
-    color: '#c33',
+    color: '#7B5B34', // brown-900
     fontSize: 14
   },
   listContainer: {
@@ -346,18 +346,18 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#F9F6F2', // brown-10 (light text on dark)
     marginBottom: 8,
     textAlign: 'center'
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: '#CDAD87', // brown-50 (light text on dark)
     textAlign: 'center',
     lineHeight: 24
   },
   card: {
-    backgroundColor: '#2a2d3a',
+    backgroundColor: '#24273b', // main-400
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
@@ -377,18 +377,18 @@ const styles = StyleSheet.create({
   mountainName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#F9F6F2', // brown-10 (light text on dark)
     marginBottom: 4,
     textTransform: 'capitalize'
   },
   climbDate: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#CDAD87', // brown-50
     marginBottom: 4
   },
   username: {
     fontSize: 12,
-    color: '#9ca3af'
+    color: '#CDAD87' // brown-50
   },
   imageContainer: {
     position: 'relative'
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#1a1d2e'
+    backgroundColor: '#151728' // main-500
   },
   image: {
     width: '100%',
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   expandButtonText: {
-    color: '#fff',
+    color: '#F9F6F2', // brown-10 (light text)
     fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -427,11 +427,11 @@ const styles = StyleSheet.create({
   },
   reportText: {
     fontSize: 14,
-    color: '#e5e7eb',
+    color: '#F4EDE4', // brown-20 (light text on dark background)
     lineHeight: 20
   },
   seeMoreText: {
-    color: '#9ca3af',
+    color: '#CDAD87', // brown-50
     fontWeight: '600'
   },
   footerLoader: {
