@@ -7,26 +7,18 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../contexts/AuthContext'
-import { StackNavigationProp } from '@react-navigation/stack'
-
-type AuthStackParamList = {
-  SignIn: undefined
-  SignUp: undefined
-  Home: undefined
-}
-
-type SignUpScreenNavigationProp = StackNavigationProp<
-  AuthStackParamList,
-  'SignUp'
->
+import { AuthStackNavigationProp } from '../navigation/types'
+import { colors } from '../theme/colors'
+import { spacing, typography, borderRadius, shadows } from '../theme'
+import { VALIDATION } from '../constants'
 
 interface Props {
-  navigation: SignUpScreenNavigationProp
+  navigation: AuthStackNavigationProp<'SignUp'>
 }
 
 const SignUpScreen: React.FC<Props> = ({ navigation }) => {
@@ -47,8 +39,11 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
       return
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long')
+    if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
+      Alert.alert(
+        'Error',
+        `Password must be at least ${VALIDATION.MIN_PASSWORD_LENGTH} characters long`
+      )
       return
     }
 
@@ -157,7 +152,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#151728' // main-500 (dark background)
+    backgroundColor: colors.main[500]
   },
   keyboardAvoidingView: {
     flex: 1
@@ -165,74 +160,60 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24
+    paddingHorizontal: spacing.xl
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40
+    marginBottom: spacing['3xl']
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#F9F6F2', // brown-10 (light text)
-    marginBottom: 8
+    fontSize: typography.fontSize['4xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.brown[10],
+    marginBottom: spacing.sm
   },
   subtitle: {
-    fontSize: 16,
-    color: '#CDAD87' // brown-50 (light text)
+    fontSize: typography.fontSize.base,
+    color: colors.brown[50]
   },
   form: {
-    marginBottom: 40
+    marginBottom: spacing['3xl']
   },
   inputContainer: {
-    marginBottom: 20
+    marginBottom: spacing.lg
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F9F6F2', // brown-10 (light text)
-    marginBottom: 8
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.brown[10],
+    marginBottom: spacing.sm
   },
   input: {
-    backgroundColor: '#24273b', // main-400 (dark input)
+    backgroundColor: colors.main[400],
     borderWidth: 1,
-    borderColor: '#886439', // brown-800 (dark border)
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#F9F6F2', // brown-10 (light text)
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2
+    borderColor: colors.brown[800],
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    fontSize: typography.fontSize.base,
+    color: colors.brown[10],
+    ...shadows.sm
   },
   signUpButton: {
-    backgroundColor: '#ae8048', // brown-500
-    borderRadius: 8,
-    paddingVertical: 16,
+    backgroundColor: colors.brown[500],
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.base,
     alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4
+    marginTop: spacing.lg,
+    ...shadows.md
   },
   disabledButton: {
     opacity: 0.6
   },
   signUpButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
     letterSpacing: 1
   },
   footer: {
@@ -241,13 +222,13 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   footerText: {
-    fontSize: 16,
-    color: '#CDAD87' // brown-50 (light text)
+    fontSize: typography.fontSize.base,
+    color: colors.brown[50]
   },
   linkText: {
-    fontSize: 16,
-    color: '#ae8048', // brown-500
-    fontWeight: '600'
+    fontSize: typography.fontSize.base,
+    color: colors.brown[500],
+    fontWeight: typography.fontWeight.semibold
   }
 })
 

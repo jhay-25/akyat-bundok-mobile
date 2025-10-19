@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  SafeAreaView,
   Dimensions,
   Alert
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ClimbLog } from '../types'
 import getImageUrl from '../utils/getImageUrl'
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://akyatbundok.com'
+import { API_CONFIG, VALIDATION } from '../constants'
+import { colors } from '../theme/colors'
 
 const LatestClimbsScreen: React.FC = () => {
   const [logs, setLogs] = useState<ClimbLog[]>([])
@@ -37,7 +37,9 @@ const LatestClimbsScreen: React.FC = () => {
           setLoadingMore(true)
         }
 
-        const url = `${API_URL}/api/public/logs/latest?page=${pageNum}${
+        const url = `${
+          API_CONFIG.BASE_URL
+        }/api/public/logs/latest?page=${pageNum}${
           pageNum === 1 ? '&count=true' : ''
         }`
         console.log('Fetching logs from:', url)
@@ -217,10 +219,11 @@ const LogCard: React.FC<LogCardProps> = ({ log }) => {
       })
     : 'Unspecified'
 
-  const shouldTruncate = (climb_report?.length ?? 0) > 150
+  const shouldTruncate =
+    (climb_report?.length ?? 0) > VALIDATION.TRUNCATE_LENGTH
   const displayReport =
     shouldTruncate && !showFullReport
-      ? climb_report?.substring(0, 150)
+      ? climb_report?.substring(0, VALIDATION.TRUNCATE_LENGTH)
       : climb_report
 
   return (
