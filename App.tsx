@@ -3,30 +3,34 @@ import { StatusBar } from 'expo-status-bar'
 import { ActivityIndicator, View, StyleSheet } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { Ionicons } from '@expo/vector-icons'
 
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import SignInScreen from './src/screens/SignInScreen'
 import SignUpScreen from './src/screens/SignUpScreen'
 import HomeScreen from './src/screens/HomeScreen'
+import LatestClimbsScreen from './src/screens/LatestClimbsScreen'
 
 type AuthStackParamList = {
   SignIn: undefined
   SignUp: undefined
 }
 
-type AppStackParamList = {
+type MainTabParamList = {
   Home: undefined
+  Latest: undefined
 }
 
 const AuthStack = createStackNavigator<AuthStackParamList>()
-const AppStack = createStackNavigator<AppStackParamList>()
+const MainTab = createBottomTabNavigator<MainTabParamList>()
 
 const AuthNavigator = () => {
   return (
     <AuthStack.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: false
       }}
     >
       <AuthStack.Screen name="SignIn" component={SignInScreen} />
@@ -37,13 +41,42 @@ const AuthNavigator = () => {
 
 const AppNavigator = () => {
   return (
-    <AppStack.Navigator
-      screenOptions={{
+    <MainTab.Navigator
+      screenOptions={({ route }) => ({
         headerShown: false,
-      }}
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: keyof typeof Ionicons.glyphMap
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline'
+          } else if (route.name === 'Latest') {
+            iconName = focused ? 'compass' : 'compass-outline'
+          } else {
+            iconName = 'help-outline'
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />
+        },
+        tabBarActiveTintColor: '#8B4513',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopColor: '#e0e0e0',
+          borderTopWidth: 1,
+        },
+      })}
     >
-      <AppStack.Screen name="Home" component={HomeScreen} />
-    </AppStack.Navigator>
+      <MainTab.Screen 
+        name="Home" 
+        component={HomeScreen}
+        options={{ tabBarLabel: 'Home' }}
+      />
+      <MainTab.Screen 
+        name="Latest" 
+        component={LatestClimbsScreen}
+        options={{ tabBarLabel: 'Latest' }}
+      />
+    </MainTab.Navigator>
   )
 }
 
@@ -79,6 +112,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
+    backgroundColor: '#f5f5f5'
+  }
 })

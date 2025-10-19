@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   KeyboardAvoidingView,
-  Platform,
+  Platform
 } from 'react-native'
 import { useAuth } from '../contexts/AuthContext'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -20,7 +20,10 @@ type AuthStackParamList = {
   Home: undefined
 }
 
-type SignUpScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'SignUp'>
+type SignUpScreenNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  'SignUp'
+>
 
 interface Props {
   navigation: SignUpScreenNavigationProp
@@ -51,7 +54,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 
     setLoading(true)
     const { error } = await signUp(email, password)
-    
+
     if (error) {
       Alert.alert('Sign Up Failed', error.message)
     } else {
@@ -66,7 +69,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
         ]
       )
     }
-    
+
     setLoading(false)
   }
 
@@ -151,41 +154,41 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f5f5'
   },
   keyboardAvoidingView: {
-    flex: 1,
+    flex: 1
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 24
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 40
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 8
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#666'
   },
   form: {
-    marginBottom: 40,
+    marginBottom: 40
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 20
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 8
   },
   input: {
     backgroundColor: '#fff',
@@ -198,11 +201,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 1
     },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 2
   },
   signUpButton: {
     backgroundColor: '#8B4513',
@@ -213,35 +216,35 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 2
     },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 4,
+    elevation: 4
   },
   disabledButton: {
-    opacity: 0.6,
+    opacity: 0.6
   },
   signUpButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    letterSpacing: 1,
+    letterSpacing: 1
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   footerText: {
     fontSize: 16,
-    color: '#666',
+    color: '#666'
   },
   linkText: {
     fontSize: 16,
     color: '#8B4513',
-    fontWeight: '600',
-  },
+    fontWeight: '600'
+  }
 })
 
 export default SignUpScreen

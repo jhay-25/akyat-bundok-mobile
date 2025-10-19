@@ -6,11 +6,6 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "app-ref"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["app-ref"]
 }
