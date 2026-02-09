@@ -2,7 +2,6 @@ import { Platform } from 'react-native'
 
 /**
  * Spacing system
- * Use these instead of hard-coded numbers for consistency
  */
 export const spacing = {
   xs: 4,
@@ -33,6 +32,7 @@ export const borderRadius = {
  */
 export const typography = {
   fontSize: {
+    xxs: 11,
     xs: 12,
     sm: 14,
     base: 16,

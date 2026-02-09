@@ -12,6 +12,7 @@ interface UserProfile {
   location: string | null
   website: string | null
   banner_path: string | null
+  user_role?: { role: 'crew' | 'pro' | null }
 }
 
 interface AuthContextType {
@@ -50,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('*, user_role: user_roles(role)')
         .eq('id', userId)
         .single()
 
