@@ -1,17 +1,39 @@
 /**
  * App Color Palette
- * Based on the official brand colors from tailwind.config.ts
+ * Modern dark mode design system
  */
 export const colors = {
-  // Brown shades - Primary brand colors
+  // Background colors
+  background: {
+    primary: '#0A0A0A', // Main background
+    secondary: '#1A1A1A', // Cards, header
+    tertiary: '#2A2A2A', // Elevated elements
+    elevated: '#3A3A3A' // Buttons, interactive elements
+  },
+
+  // Text colors
+  text: {
+    primary: '#FFFFFF', // Primary text
+    secondary: '#CCCCCC', // Body text
+    tertiary: '#999999', // Secondary/muted text
+    quaternary: '#666666' // Inactive/disabled text
+  },
+
+  // Border colors
+  border: {
+    primary: '#2A2A2A', // Default borders
+    secondary: '#3A3A3A' // Elevated borders
+  },
+
+  // Brown shades - Legacy brand colors (kept for compatibility)
   brown: {
-    10: '#F9F6F2', // Light background
-    20: '#F4EDE4', // Very light
-    30: '#EEE4D7', // Borders
-    50: '#CDAD87', // Secondary text
-    500: '#ae8048', // Primary brand
-    800: '#886439', // Dark text
-    900: '#7B5B34' // Darkest brown
+    10: '#F9F6F2',
+    20: '#F4EDE4',
+    30: '#EEE4D7',
+    50: '#CDAD87',
+    500: '#ae8048',
+    800: '#886439',
+    900: '#7B5B34'
   },
 
   // Blue accent
@@ -19,14 +41,18 @@ export const colors = {
     500: '#4875AD'
   },
 
-  // Main dark colors
+  // Main dark colors (legacy)
   main: {
-    400: '#24273b', // Dark cards/inputs
-    500: '#151728' // Primary dark background
+    400: '#24273b',
+    500: '#151728'
   },
 
   // Semantic colors
-  error: '#dc3545',
+  error: {
+    background: '#2A1A0A',
+    border: '#FF9800',
+    text: '#FFB74D'
+  },
   success: '#28a745',
   warning: '#ffc107',
 

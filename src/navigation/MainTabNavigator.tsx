@@ -1,8 +1,10 @@
 import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import LatestClimbsScreen from '../screens/LatestClimbsScreen'
 import HomeScreen from '../screens/HomeScreen'
+import WorldPeaksScreen from '../screens/WorldPeaksScreen'
 import { AuthNavigator } from './AuthNavigator'
 import { MainTabParamList } from './types'
 import { useAuth } from '../contexts/AuthContext'
@@ -14,10 +16,12 @@ const Tab = createBottomTabNavigator<MainTabParamList>()
  * Main Tab Navigator
  * Available to both authenticated and unauthenticated users
  * - Latest: Public climbing activity feed
+ * - World Peaks: Browse peaks by country
  * - Account/Sign In: User account or auth flow
  */
 export const MainTabNavigator: React.FC = () => {
   const { user } = useAuth()
+  const insets = useSafeAreaInsets()
 
   return (
     <Tab.Navigator
@@ -29,6 +33,9 @@ export const MainTabNavigator: React.FC = () => {
           switch (route.name) {
             case 'Latest':
               iconName = focused ? 'compass' : 'compass-outline'
+              break
+            case 'WorldPeaks':
+              iconName = focused ? 'earth' : 'earth-outline'
               break
             case 'Home':
               iconName = focused ? 'home' : 'home-outline'
@@ -42,12 +49,20 @@ export const MainTabNavigator: React.FC = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />
         },
-        tabBarActiveTintColor: colors.brown[500],
-        tabBarInactiveTintColor: colors.brown[800],
+        tabBarActiveTintColor: colors.text.primary,
+        tabBarInactiveTintColor: colors.text.quaternary,
         tabBarStyle: {
-          backgroundColor: colors.main[400],
-          borderTopColor: colors.brown[800],
-          borderTopWidth: 1
+          backgroundColor: colors.background.secondary,
+          borderTopWidth: 0,
+          height: 60 + insets.bottom
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginTop: 2
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4
         }
       })}
     >
@@ -55,6 +70,12 @@ export const MainTabNavigator: React.FC = () => {
         name="Latest"
         component={LatestClimbsScreen}
         options={{ tabBarLabel: 'Latest' }}
+      />
+
+      <Tab.Screen
+        name="WorldPeaks"
+        component={WorldPeaksScreen}
+        options={{ tabBarLabel: 'World Peaks' }}
       />
 
       {user ? (

@@ -4,17 +4,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  Image,
   ActivityIndicator,
-  Dimensions,
   Alert
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ClimbLog } from '../types'
-import getImageUrl from '../utils/getImageUrl'
-import { API_CONFIG, VALIDATION } from '../constants'
+import { API_CONFIG } from '../constants'
 import { colors } from '../theme/colors'
+import { ClimbLogCard } from '../components/ClimbLogCard'
 
 const LatestClimbsScreen: React.FC = () => {
   const [logs, setLogs] = useState<ClimbLog[]>([])
@@ -119,13 +116,15 @@ const LatestClimbsScreen: React.FC = () => {
     }
   }
 
-  const renderLogCard = ({ item }: { item: ClimbLog }) => <LogCard log={item} />
+  const renderLogCard = ({ item }: { item: ClimbLog }) => (
+    <ClimbLogCard log={item} />
+  )
 
   const renderFooter = () => {
     if (!loadingMore) return null
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#ae8048" />
+        <ActivityIndicator size="small" color="#999" />
       </View>
     )
   }
@@ -146,18 +145,18 @@ const LatestClimbsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ae8048" />
+        <ActivityIndicator size="large" color="#999" />
         <Text style={styles.loadingText}>Loading latest climbs...</Text>
       </View>
     )
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Latest Climbs</Text>
+        <Text style={styles.title}>Latest</Text>
         <Text style={styles.subtitle}>
-          See the latest climbs from fellow hikers around the world
+          See the latest climbs around the world!
         </Text>
       </View>
 
@@ -186,138 +185,57 @@ const LatestClimbsScreen: React.FC = () => {
   )
 }
 
-interface LogCardProps {
-  log: ClimbLog
-}
-
-const LogCard: React.FC<LogCardProps> = ({ log }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [showFullReport, setShowFullReport] = useState(false)
-
-  const { mountain, user, log_images, climb_report, climb_date } = log
-  const hasImages = log_images.length > 0
-  const hasClimbReport = Boolean(climb_report)
-  const displayImages = isExpanded ? log_images : log_images.slice(0, 1)
-
-  const formattedDate = climb_date
-    ? new Date(climb_date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    : 'Unspecified'
-
-  const shouldTruncate =
-    (climb_report?.length ?? 0) > VALIDATION.TRUNCATE_LENGTH
-  const displayReport =
-    shouldTruncate && !showFullReport
-      ? climb_report?.substring(0, VALIDATION.TRUNCATE_LENGTH)
-      : climb_report
-
-  return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.mountainName} numberOfLines={1}>
-          {mountain.name}
-        </Text>
-        <Text style={styles.climbDate}>Climb Date: {formattedDate}</Text>
-        <Text style={styles.username}>by @{user.username}</Text>
-      </View>
-
-      {hasImages && (
-        <View style={styles.imageContainer}>
-          {displayImages.map((image, index) => (
-            <View key={image.id} style={styles.imageWrapper}>
-              <Image
-                source={{ uri: getImageUrl(image.image_path) }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            </View>
-          ))}
-          {log_images.length > 1 && (
-            <TouchableOpacity
-              style={styles.expandButton}
-              onPress={() => setIsExpanded(!isExpanded)}
-            >
-              <Text style={styles.expandButtonText}>
-                {isExpanded ? 'Show Less' : `+${log_images.length - 1} more`}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {hasClimbReport && (
-        <View
-          style={[styles.reportContainer, hasImages && styles.reportWithImage]}
-        >
-          <Text style={styles.reportText}>
-            {displayReport}
-            {shouldTruncate && (
-              <Text
-                style={styles.seeMoreText}
-                onPress={() => setShowFullReport(!showFullReport)}
-              >
-                {showFullReport ? ' ...see less' : ' ...see more'}
-              </Text>
-            )}
-          </Text>
-        </View>
-      )}
-    </View>
-  )
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#151728' // main-500 (dark background)
+    backgroundColor: colors.background.primary
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#151728' // main-500
+    backgroundColor: colors.background.primary
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#CDAD87' // brown-50 (light text on dark)
+    marginTop: 16,
+    fontSize: 15,
+    color: colors.text.tertiary,
+    fontWeight: '500'
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingTop: 8,
     paddingBottom: 16,
-    backgroundColor: '#24273b', // main-400 (slightly lighter dark)
-    borderBottomWidth: 1,
-    borderBottomColor: '#886439' // brown-800
+    backgroundColor: colors.background.primary
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#F9F6F2', // brown-10 (light text)
-    marginBottom: 8
+    fontSize: 36,
+    fontWeight: '800',
+    color: colors.text.primary,
+    letterSpacing: -1
   },
   subtitle: {
     fontSize: 14,
-    color: '#CDAD87', // brown-50
-    lineHeight: 20
+    color: colors.text.tertiary
   },
   errorContainer: {
-    backgroundColor: '#F4EDE4', // brown-20
-    padding: 12,
-    marginHorizontal: 20,
-    marginTop: 12,
-    borderRadius: 8
+    backgroundColor: colors.error.background,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.error.border
   },
   errorText: {
-    color: '#7B5B34', // brown-900
-    fontSize: 14
+    color: colors.error.text,
+    fontSize: 14,
+    lineHeight: 20
   },
   listContainer: {
     padding: 16,
-    gap: 16
+    gap: 20
   },
   emptyListContainer: {
     flex: 1,
@@ -331,102 +249,25 @@ const styles = StyleSheet.create({
     paddingVertical: 60
   },
   emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16
+    fontSize: 72,
+    marginBottom: 20,
+    opacity: 0.8
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#F9F6F2', // brown-10 (light text on dark)
+    fontSize: 22,
+    fontWeight: '600',
+    color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'center'
   },
   emptyText: {
-    fontSize: 16,
-    color: '#CDAD87', // brown-50 (light text on dark)
+    fontSize: 15,
+    color: colors.text.tertiary,
     textAlign: 'center',
     lineHeight: 24
   },
-  card: {
-    backgroundColor: '#24273b', // main-400
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3
-  },
-  cardHeader: {
-    padding: 16,
-    paddingBottom: 8
-  },
-  mountainName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#F9F6F2', // brown-10 (light text on dark)
-    marginBottom: 4,
-    textTransform: 'capitalize'
-  },
-  climbDate: {
-    fontSize: 12,
-    color: '#CDAD87', // brown-50
-    marginBottom: 4
-  },
-  username: {
-    fontSize: 12,
-    color: '#CDAD87' // brown-50
-  },
-  imageContainer: {
-    position: 'relative'
-  },
-  imageWrapper: {
-    width: '100%',
-    aspectRatio: 1,
-    backgroundColor: '#151728' // main-500
-  },
-  image: {
-    width: '100%',
-    height: '100%'
-  },
-  expandButton: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingVertical: 12,
-    alignItems: 'center'
-  },
-  expandButtonText: {
-    color: '#F9F6F2', // brown-10 (light text)
-    fontSize: 14,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1
-  },
-  reportContainer: {
-    padding: 16,
-    paddingTop: 8
-  },
-  reportWithImage: {
-    paddingTop: 16
-  },
-  reportText: {
-    fontSize: 14,
-    color: '#F4EDE4', // brown-20 (light text on dark background)
-    lineHeight: 20
-  },
-  seeMoreText: {
-    color: '#CDAD87', // brown-50
-    fontWeight: '600'
-  },
   footerLoader: {
-    paddingVertical: 20,
+    paddingVertical: 24,
     alignItems: 'center'
   }
 })

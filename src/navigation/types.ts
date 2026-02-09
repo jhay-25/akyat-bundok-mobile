@@ -19,6 +19,7 @@ export type AuthStackNavigationProp<T extends keyof AuthStackParamList> =
  */
 export type MainTabParamList = {
   Latest: undefined
+  WorldPeaks: undefined
   Home?: undefined
   Account?: undefined
 }

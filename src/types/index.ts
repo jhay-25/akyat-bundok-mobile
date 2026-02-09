@@ -13,6 +13,32 @@ export interface Mountain {
   difficulty_level: number | null
   banner_path: string | null
   other_name: string | null
+  countries?: Array<{ country: Country }>
+}
+
+export interface Country {
+  id: number
+  iso_code: string
+  name: string
+  continent_id: number
+}
+
+export interface Continent {
+  id: number
+  name: string
+}
+
+export interface CountryWithMountainCount extends Country {
+  mountain_count: number
+}
+
+export interface Region {
+  id: number
+  name: string
+}
+
+export interface RegionWithMountainCount extends Region {
+  mountain_count: number
 }
 
 export interface User {
