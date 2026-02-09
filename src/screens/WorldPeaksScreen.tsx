@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { CountryWithMountainCount, Continent } from '../types'
 import { API_CONFIG } from '../constants'
 import { colors } from '../theme/colors'
+import { spacing, typography, borderRadius, shadows } from '../theme'
 
 const WorldPeaksScreen: React.FC = () => {
   const [countries, setCountries] = useState<CountryWithMountainCount[]>([])
@@ -268,67 +269,67 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     backgroundColor: colors.background.primary
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.base,
     backgroundColor: colors.background.primary
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
+    fontSize: typography.fontSize['5xl'],
+    fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
     letterSpacing: -1
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: typography.fontSize.sm,
     color: colors.text.tertiary
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background.secondary,
-    marginHorizontal: 24,
-    marginTop: 16,
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.base,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border.primary
   },
   searchIcon: {
-    marginRight: 12
+    marginRight: spacing.md
   },
   searchInput: {
     flex: 1,
     height: 48,
     color: colors.text.primary,
-    fontSize: 16
+    fontSize: typography.fontSize.base
   },
   clearButton: {
-    padding: 4
+    padding: spacing.xs
   },
   continentFiltersScroll: {
     maxHeight: 25,
     marginBottom: 8
   },
   continentFiltersWrapper: {
-    marginBottom: 8
+    marginBottom: spacing.sm
   },
   continentFiltersContainer: {
-    paddingHorizontal: 24,
-    gap: 8
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm
   },
   continentChip: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
     backgroundColor: colors.background.elevated,
     borderWidth: 1,
     borderColor: colors.border.primary
@@ -338,79 +339,72 @@ const styles = StyleSheet.create({
     borderColor: colors.text.primary
   },
   continentChipText: {
-    fontSize: 12,
+    fontSize: typography.fontSize.xs,
     color: colors.text.primary,
-    fontWeight: '500'
+    fontWeight: typography.fontWeight.medium
   },
   continentChipTextActive: {
     color: colors.background.primary,
-    fontWeight: '600'
+    fontWeight: typography.fontWeight.semibold
   },
   listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 24
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl
   },
   countryItem: {
     backgroundColor: colors.background.secondary,
-    borderRadius: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4
+    borderRadius: borderRadius.full,
+    marginBottom: spacing.base,
+    ...shadows.lg
   },
   countryContent: {
-    padding: 20,
+    padding: spacing.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
   countryName: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
     flex: 1,
     letterSpacing: -0.3
   },
   mountainCount: {
-    fontSize: 13,
+    fontSize: typography.fontSize.sm,
     color: colors.text.tertiary,
-    marginLeft: 12,
-    fontWeight: '600'
+    marginLeft: spacing.md,
+    fontWeight: typography.fontWeight.semibold
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
+    marginTop: spacing.md,
+    fontSize: typography.fontSize.base,
     color: colors.text.tertiary
   },
   errorText: {
-    fontSize: 16,
+    fontSize: typography.fontSize.base,
     color: colors.error.text,
     textAlign: 'center',
-    marginBottom: 16
+    marginBottom: spacing.base
   },
   retryButton: {
     backgroundColor: colors.background.elevated,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg
   },
   retryButtonText: {
     color: colors.text.primary,
-    fontSize: 16,
-    fontWeight: '600'
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold
   },
   emptyContainer: {
-    paddingVertical: 48,
+    paddingVertical: spacing['4xl'],
     alignItems: 'center'
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: typography.fontSize.base,
     color: colors.text.tertiary
   }
 })

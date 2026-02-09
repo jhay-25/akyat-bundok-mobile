@@ -8,7 +8,8 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Image
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../contexts/AuthContext'
@@ -50,6 +51,11 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.header}>
+            <Image 
+              source={require('../../assets/icon.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to AkyatBundok</Text>
           </View>
@@ -60,7 +66,7 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your email"
-                placeholderTextColor="#886439"
+                placeholderTextColor={colors.text.tertiary}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -74,7 +80,7 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your password"
-                placeholderTextColor="#886439"
+                placeholderTextColor={colors.text.tertiary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -113,7 +119,7 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.main[500]
+    backgroundColor: colors.background.primary
   },
   keyboardAvoidingView: {
     flex: 1
@@ -127,15 +133,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing['3xl']
   },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: spacing.lg
+  },
   title: {
     fontSize: typography.fontSize['4xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.brown[10],
+    color: colors.text.primary,
     marginBottom: spacing.sm
   },
   subtitle: {
     fontSize: typography.fontSize.base,
-    color: colors.brown[50]
+    color: colors.text.secondary
   },
   form: {
     marginBottom: spacing['3xl']
@@ -146,22 +157,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.brown[10],
+    color: colors.text.primary,
     marginBottom: spacing.sm
   },
   input: {
-    backgroundColor: colors.main[400],
+    backgroundColor: colors.background.secondary,
     borderWidth: 1,
-    borderColor: colors.brown[800],
+    borderColor: colors.border.primary,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
     fontSize: typography.fontSize.base,
-    color: colors.brown[10],
+    color: colors.text.primary,
     ...shadows.sm
   },
   signInButton: {
-    backgroundColor: colors.brown[500],
+    backgroundColor: colors.background.elevated,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
@@ -184,11 +195,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: typography.fontSize.base,
-    color: colors.brown[50]
+    color: colors.text.secondary
   },
   linkText: {
     fontSize: typography.fontSize.base,
-    color: colors.brown[500],
+    color: colors.text.primary,
     fontWeight: typography.fontWeight.semibold
   }
 })

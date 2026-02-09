@@ -150,8 +150,7 @@ const UsernameSetupScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.header}>
             <Text style={styles.title}>Choose Your Username</Text>
             <Text style={styles.subtitle}>
-              Pick a unique username to complete your profile. This will be
-              visible to other hikers.
+              Pick a unique username to complete your profile
             </Text>
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>Username requirements:</Text>
@@ -172,7 +171,7 @@ const UsernameSetupScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={[styles.input, error ? styles.inputError : null]}
                 placeholder="your_username"
-                placeholderTextColor="#886439"
+                placeholderTextColor={colors.text.tertiary}
                 value={username}
                 onChangeText={(text) => {
                   setUsername(text)
@@ -220,7 +219,7 @@ const UsernameSetupScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.main[500]
+    backgroundColor: colors.background.primary
   },
   keyboardAvoidingView: {
     flex: 1
@@ -236,32 +235,32 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typography.fontSize['3xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.brown[10],
+    color: colors.text.primary,
     marginBottom: spacing.md,
     textAlign: 'center'
   },
   subtitle: {
     fontSize: typography.fontSize.base,
-    color: colors.brown[50],
+    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.lg
   },
   infoBox: {
-    backgroundColor: colors.main[400],
+    backgroundColor: colors.background.secondary,
     borderRadius: borderRadius.md,
     padding: spacing.base,
     borderWidth: 1,
-    borderColor: colors.brown[800]
+    borderColor: colors.border.primary
   },
   infoText: {
     fontSize: typography.fontSize.sm,
-    color: colors.brown[50],
+    color: colors.text.secondary,
     fontWeight: typography.fontWeight.semibold,
     marginBottom: spacing.xs
   },
   infoItem: {
     fontSize: typography.fontSize.sm,
-    color: colors.brown[50],
+    color: colors.text.secondary,
     marginLeft: spacing.sm,
     marginTop: spacing.xs
   },
@@ -274,38 +273,38 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.brown[10],
+    color: colors.text.primary,
     marginBottom: spacing.sm
   },
   input: {
-    backgroundColor: colors.main[400],
+    backgroundColor: colors.background.secondary,
     borderWidth: 1,
-    borderColor: colors.brown[800],
+    borderColor: colors.border.primary,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
     fontSize: typography.fontSize.base,
-    color: colors.brown[10],
+    color: colors.text.primary,
     ...shadows.sm
   },
   inputError: {
-    borderColor: colors.error || '#ef4444',
+    borderColor: colors.error.border,
     borderWidth: 2
   },
   errorText: {
-    color: colors.error || '#ef4444',
+    color: colors.error.text,
     fontSize: typography.fontSize.sm,
     marginTop: spacing.xs,
     marginLeft: spacing.xs
   },
   helperText: {
-    color: colors.brown[50],
+    color: colors.text.tertiary,
     fontSize: typography.fontSize.sm,
     marginTop: spacing.xs,
     marginLeft: spacing.xs
   },
   submitButton: {
-    backgroundColor: colors.brown[500],
+    backgroundColor: colors.background.elevated,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
@@ -328,10 +327,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.md,
     borderWidth: 1,
-    borderColor: colors.brown[500]
+    borderColor: colors.border.secondary
   },
   signOutButtonText: {
-    color: colors.brown[500],
+    color: colors.text.secondary,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold
   }
