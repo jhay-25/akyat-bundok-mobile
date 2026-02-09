@@ -20,7 +20,7 @@ export interface Country {
   id: number
   iso_code: string
   name: string
-  continent_id: number
+  continent_id?: number
 }
 
 export interface Continent {

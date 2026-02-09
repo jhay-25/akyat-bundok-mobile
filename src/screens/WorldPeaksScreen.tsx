@@ -142,7 +142,7 @@ const WorldPeaksScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.brown[500]} />
+          <ActivityIndicator size="large" color={colors.text.primary} />
           <Text style={styles.loadingText}>Loading world peaks...</Text>
         </View>
       </SafeAreaView>
@@ -163,9 +163,9 @@ const WorldPeaksScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>🌍 World Peaks</Text>
+        <Text style={styles.title}>World Peaks</Text>
         <Text style={styles.subtitle}>
           Discover breathtaking peaks around the world
         </Text>
@@ -176,13 +176,13 @@ const WorldPeaksScreen: React.FC = () => {
         <Ionicons
           name="search"
           size={20}
-          color={colors.brown[800]}
+          color={colors.text.tertiary}
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.searchInput}
           placeholder="Search countries..."
-          placeholderTextColor={colors.brown[800]}
+          placeholderTextColor={colors.text.tertiary}
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoCapitalize="none"
@@ -190,42 +190,47 @@ const WorldPeaksScreen: React.FC = () => {
         />
         {(searchQuery || selectedContinentId !== null) && (
           <TouchableOpacity onPress={clearFilters} style={styles.clearButton}>
-            <Ionicons name="close-circle" size={20} color={colors.brown[800]} />
+            <Ionicons
+              name="close-circle"
+              size={20}
+              color={colors.text.tertiary}
+            />
           </TouchableOpacity>
         )}
       </View>
 
       {/* Continent Filters */}
       {continents.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.continentFiltersContainer}
-          style={styles.continentFiltersScroll}
-        >
-          {continents.map((continent) => {
-            const isSelected = selectedContinentId === continent.id
-            return (
-              <TouchableOpacity
-                key={continent.id}
-                style={[
-                  styles.continentChip,
-                  isSelected && styles.continentChipActive
-                ]}
-                onPress={() => handleContinentPress(continent.id)}
-              >
-                <Text
+        <View style={styles.continentFiltersWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.continentFiltersContainer}
+          >
+            {continents.map((continent) => {
+              const isSelected = selectedContinentId === continent.id
+              return (
+                <TouchableOpacity
+                  key={continent.id}
                   style={[
-                    styles.continentChipText,
-                    isSelected && styles.continentChipTextActive
+                    styles.continentChip,
+                    isSelected && styles.continentChipActive
                   ]}
+                  onPress={() => handleContinentPress(continent.id)}
                 >
-                  {continent.name}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
+                  <Text
+                    style={[
+                      styles.continentChipText,
+                      isSelected && styles.continentChipTextActive
+                    ]}
+                  >
+                    {continent.name}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
+          </ScrollView>
+        </View>
       )}
 
       <FlatList
@@ -237,7 +242,7 @@ const WorldPeaksScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.brown[500]}
+            tintColor={colors.text.primary}
           />
         }
         ListEmptyComponent={
@@ -257,136 +262,146 @@ const WorldPeaksScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.main[500]
+    backgroundColor: colors.background.primary
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24
+    paddingHorizontal: 24,
+    backgroundColor: colors.background.primary
   },
   header: {
     paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.brown[800]
+    paddingTop: 8,
+    paddingBottom: 16,
+    backgroundColor: colors.background.primary
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.brown[500],
-    marginBottom: 4
+    fontSize: 36,
+    fontWeight: '800',
+    color: colors.text.primary,
+    letterSpacing: -1
   },
   subtitle: {
     fontSize: 14,
-    color: colors.brown[800],
-    marginBottom: 8
+    color: colors.text.tertiary
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.main[400],
+    backgroundColor: colors.background.secondary,
     marginHorizontal: 24,
     marginTop: 16,
     marginBottom: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.brown[800]
+    borderColor: colors.border.primary
   },
   searchIcon: {
-    marginRight: 8
+    marginRight: 12
   },
   searchInput: {
     flex: 1,
-    height: 44,
-    color: colors.brown[500],
+    height: 48,
+    color: colors.text.primary,
     fontSize: 16
   },
   clearButton: {
     padding: 4
   },
   continentFiltersScroll: {
-    maxHeight: 50,
+    maxHeight: 25,
+    marginBottom: 8
+  },
+  continentFiltersWrapper: {
     marginBottom: 8
   },
   continentFiltersContainer: {
     paddingHorizontal: 24,
-    paddingVertical: 8,
     gap: 8
   },
   continentChip: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 4,
     borderRadius: 20,
-    backgroundColor: colors.main[400],
+    backgroundColor: colors.background.elevated,
     borderWidth: 1,
-    borderColor: colors.brown[800],
-    marginRight: 8
+    borderColor: colors.border.primary
   },
   continentChipActive: {
-    backgroundColor: colors.brown[500],
-    borderColor: colors.brown[500]
+    backgroundColor: colors.text.primary,
+    borderColor: colors.text.primary
   },
   continentChipText: {
-    fontSize: 14,
-    color: colors.brown[500],
+    fontSize: 12,
+    color: colors.text.primary,
     fontWeight: '500'
   },
   continentChipTextActive: {
-    color: colors.main[500],
+    color: colors.background.primary,
     fontWeight: '600'
   },
   listContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 24
   },
   countryItem: {
-    backgroundColor: colors.main[400],
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.brown[800],
-    overflow: 'hidden'
+    backgroundColor: colors.background.secondary,
+    borderRadius: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4
   },
   countryContent: {
-    padding: 16,
+    padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
   countryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.brown[500],
-    flex: 1
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text.primary,
+    flex: 1,
+    letterSpacing: -0.3
   },
   mountainCount: {
-    fontSize: 12,
-    color: colors.brown[800],
-    marginLeft: 12
+    fontSize: 13,
+    color: colors.text.tertiary,
+    marginLeft: 12,
+    fontWeight: '600'
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: colors.brown[800]
+    color: colors.text.tertiary
   },
   errorText: {
     fontSize: 16,
-    color: '#ff6b6b',
+    color: colors.error.text,
     textAlign: 'center',
     marginBottom: 16
   },
   retryButton: {
-    backgroundColor: colors.brown[500],
+    backgroundColor: colors.background.elevated,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8
+    borderRadius: 12
   },
   retryButtonText: {
-    color: colors.main[500],
+    color: colors.text.primary,
     fontSize: 16,
     fontWeight: '600'
   },
@@ -396,7 +411,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: colors.brown[800]
+    color: colors.text.tertiary
   }
 })
 
