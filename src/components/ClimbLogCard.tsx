@@ -33,15 +33,6 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({ log }) => {
   // Get countries from the mountain's countries array
   const countries = mountain.countries?.map((c) => c.country) || []
 
-  // Convert ISO code to flag emoji
-  const getFlagEmoji = (isoCode: string) => {
-    return isoCode
-      .toUpperCase()
-      .split('')
-      .map((char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
-      .join('')
-  }
-
   const formattedDate = climb_date
     ? new Date(climb_date).toLocaleDateString('en-US', {
         year: 'numeric',
