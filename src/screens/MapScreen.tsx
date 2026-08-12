@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   StyleSheet,
   Keyboard,
-  Image
+  Image,
+  Platform
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import MapView, { Marker, Region } from 'react-native-maps'
+import MapView, { Marker, Region, UrlTile } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location'
 import Supercluster from 'supercluster'
@@ -20,6 +21,9 @@ import { colors } from '../theme/colors'
 import { spacing, typography, borderRadius } from '../theme'
 import getImageUrl from '../utils/getImageUrl'
 import { MountainIcon } from '../components/MountainIcon'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from '../navigation/types'
 
 interface MountainMarker {
   id: string
@@ -30,6 +34,7 @@ interface MountainMarker {
   country_name: string | null
   region_name: string | null
   banner_path: string | null
+  canonical_url: string
 }
 
 const INITIAL_REGION: Region = {
@@ -134,6 +139,35 @@ function getMarkerSize(elevation: number | null): number {
   return Math.max(4, Math.min(8, base * 1.5 + 3)) * 4
 }
 
+const MAP_STYLE_OPTIONS = [
+  { key: 'standard', label: 'Standard' },
+  { key: 'opentopomap', label: 'OpenTopoMap' },
+  { key: 'terrain', label: 'Terrain' },
+  { key: 'satellite', label: 'Satellite' },
+  { key: 'satelliteTopo', label: 'Satellite Topo' }
+] as const
+
+type MapStyleKey = (typeof MAP_STYLE_OPTIONS)[number]['key']
+
+function resolveNativeMapType(
+  style: MapStyleKey
+): 'standard' | 'terrain' | 'satellite' | 'none' {
+  if (style === 'terrain') return 'terrain'
+  if (style === 'satellite' || style === 'satelliteTopo') return 'satellite'
+  if (style === 'opentopomap') {
+    // Hide the native base on Android so the dark map never flashes through
+    // while OpenTopoMap tiles are loading. iOS hides the base via UrlTile.
+    return Platform.OS === 'android' ? 'none' : 'standard'
+  }
+  return 'standard'
+}
+
+function resolveTileUrl(style: MapStyleKey): string | null {
+  if (style === 'opentopomap' || style === 'satelliteTopo')
+    return 'https://tile.opentopomap.org/{z}/{x}/{y}.png'
+  return null
+}
+
 const MapScreen: React.FC = () => {
   const mapRef = useRef<MapView>(null)
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -152,10 +186,13 @@ const MapScreen: React.FC = () => {
     latitude: number
     longitude: number
   } | null>(null)
-  const [mapType, setMapType] = useState<
-    'standard' | 'satellite' | 'hybrid' | 'terrain'
-  >('standard')
+  const [mapStyle, setMapStyle] = useState<MapStyleKey>('opentopomap')
   const [layersOpen, setLayersOpen] = useState(false)
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+  const nativeMapType = resolveNativeMapType(mapStyle)
+  const tileUrl = resolveTileUrl(mapStyle)
 
   const zoom = Math.max(
     0,
@@ -341,12 +378,22 @@ const MapScreen: React.FC = () => {
       {
         latitude: mountain.latitude,
         longitude: mountain.longitude,
-        latitudeDelta: 0.06,
-        longitudeDelta: 0.06
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01
       },
       700
     )
   }, [])
+
+  const openMountain = useCallback(
+    (mountain: MountainMarker) => {
+      if (!mountain.canonical_url) return
+      navigation.navigate('Mountain', {
+        canonicalUrl: mountain.canonical_url
+      })
+    },
+    [navigation]
+  )
 
   const formatElevation = (m: number | null) =>
     m == null ? null : `${m.toLocaleString()}m`
@@ -363,11 +410,25 @@ const MapScreen: React.FC = () => {
         onRegionChangeComplete={onRegionChangeComplete}
         showsUserLocation={false}
         showsPointsOfInterest={false}
-        mapType={mapType}
+        mapType={nativeMapType}
         userInterfaceStyle="dark"
-        customMapStyle={mapType === 'standard' ? DARK_MAP_STYLE : undefined}
+        customMapStyle={
+          nativeMapType === 'standard' ? DARK_MAP_STYLE : undefined
+        }
         showsCompass={false}
       >
+        {tileUrl && (
+          <UrlTile
+            urlTemplate={tileUrl}
+            maximumZ={19}
+            zIndex={-1}
+            opacity={mapStyle === 'satelliteTopo' ? 0.4 : 1}
+            shouldReplaceMapContent={
+              Platform.OS === 'ios' && mapStyle === 'opentopomap'
+            }
+          />
+        )}
+
         {clusters.map((feature: any) => {
           const [lng, lat] = feature.geometry.coordinates
           const isCluster = feature.properties.cluster
@@ -556,15 +617,8 @@ const MapScreen: React.FC = () => {
       <View style={styles.mapControls}>
         {layersOpen && (
           <View style={styles.layersPanel}>
-            {(
-              [
-                { key: 'standard', label: 'Standard' },
-                { key: 'satellite', label: 'Satellite' },
-                { key: 'hybrid', label: 'Hybrid' },
-                { key: 'terrain', label: 'Terrain' }
-              ] as const
-            ).map((option) => {
-              const isActive = mapType === option.key
+            {MAP_STYLE_OPTIONS.map((option) => {
+              const isActive = mapStyle === option.key
               return (
                 <TouchableOpacity
                   key={option.key}
@@ -573,7 +627,7 @@ const MapScreen: React.FC = () => {
                     isActive && styles.layerOptionActive
                   ]}
                   onPress={() => {
-                    setMapType(option.key)
+                    setMapStyle(option.key)
                     setLayersOpen(false)
                   }}
                 >
@@ -626,32 +680,44 @@ const MapScreen: React.FC = () => {
       {/* Selected mountain card */}
       {selected && (
         <View style={styles.selectedCard}>
-          {selected.banner_path ? (
-            <Image
-              source={{ uri: getImageUrl(selected.banner_path) }}
-              style={styles.selectedImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={styles.selectedImagePlaceholder}>
-              <Ionicons
-                name="image-outline"
-                size={26}
-                color={colors.text.tertiary}
-              />
-            </View>
-          )}
-          <View style={styles.selectedInfo}>
-            <Text style={styles.selectedName} numberOfLines={1}>
-              {selected.name}
-            </Text>
-            <Text style={styles.selectedSubtitle} numberOfLines={1}>
-              {[formatElevation(selected.elevation_m), subtitle(selected)]
-                .filter(Boolean)
-                .join(' · ')}
-            </Text>
-          </View>
           <TouchableOpacity
+            style={styles.selectedMain}
+            activeOpacity={0.8}
+            onPress={() => openMountain(selected)}
+          >
+            {selected.banner_path ? (
+              <Image
+                source={{ uri: getImageUrl(selected.banner_path) }}
+                style={styles.selectedImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.selectedImagePlaceholder}>
+                <Ionicons
+                  name="image-outline"
+                  size={26}
+                  color={colors.text.tertiary}
+                />
+              </View>
+            )}
+            <View style={styles.selectedInfo}>
+              <Text style={styles.selectedName} numberOfLines={1}>
+                {selected.name}
+              </Text>
+              <Text style={styles.selectedSubtitle} numberOfLines={1}>
+                {[formatElevation(selected.elevation_m), subtitle(selected)]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Text>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={colors.text.tertiary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.selectedClose}
             onPress={() => setSelected(null)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
@@ -876,6 +942,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.strong,
     backgroundColor: '#15181d'
+  },
+  selectedMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  selectedClose: {
+    marginLeft: spacing.sm
   },
   selectedImage: {
     width: 64,
