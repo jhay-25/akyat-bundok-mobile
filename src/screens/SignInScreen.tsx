@@ -52,7 +52,7 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.content}>
           <View style={styles.header}>
             <Image
-              source={require('../../assets/icon.png')}
+              source={require('../../assets/logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
