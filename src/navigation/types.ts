@@ -35,3 +35,16 @@ export type RootNavigationProp = CompositeNavigationProp<
   MainTabNavigationProp<keyof MainTabParamList>,
   AuthStackNavigationProp<keyof AuthStackParamList>
 >
+
+/**
+ * Root Stack Navigation Types
+ */
+export type RootStackParamList = {
+  UsernameSetup: undefined
+  MainTabs: undefined
+  Mountain: { canonicalUrl: string }
+  LogClimb: { mountainId: string; mountainName: string }
+}
+
+export type RootStackNavigationProp<T extends keyof RootStackParamList> =
+  StackNavigationProp<RootStackParamList, T>

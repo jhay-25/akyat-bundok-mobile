@@ -4,10 +4,13 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { ActivityIndicator, View, StyleSheet } from 'react-native'
 import { MainTabNavigator } from './MainTabNavigator'
 import UsernameSetupScreen from '../screens/UsernameSetupScreen'
+import MountainScreen from '../screens/MountainScreen'
+import LogClimbScreen from '../screens/LogClimbScreen'
 import { useAuth } from '../contexts/AuthContext'
 import { colors } from '../theme/colors'
+import { RootStackParamList } from './types'
 
-const Stack = createStackNavigator()
+const Stack = createStackNavigator<RootStackParamList>()
 
 /**
  * Root Navigator
@@ -49,6 +52,8 @@ export const RootNavigator: React.FC = () => {
         ) : (
           <Stack.Screen name="MainTabs" component={MainTabNavigator} />
         )}
+        <Stack.Screen name="Mountain" component={MountainScreen} />
+        <Stack.Screen name="LogClimb" component={LogClimbScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   )
