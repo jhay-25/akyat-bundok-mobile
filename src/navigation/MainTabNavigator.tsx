@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import LatestClimbsScreen from '../screens/LatestClimbsScreen'
 import HomeScreen from '../screens/HomeScreen'
 import WorldPeaksScreen from '../screens/WorldPeaksScreen'
+import MapScreen from '../screens/MapScreen'
 import { AuthNavigator } from './AuthNavigator'
 import { MainTabParamList } from './types'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,6 +16,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>()
 /**
  * Main Tab Navigator
  * Available to both authenticated and unauthenticated users
+ * - Map: Interactive mountain map (initial screen)
  * - Latest: Public climbing activity feed
  * - World Peaks: Browse peaks by country
  * - Account/Sign In: User account or auth flow
@@ -31,6 +33,9 @@ export const MainTabNavigator: React.FC = () => {
           let iconName: keyof typeof Ionicons.glyphMap
 
           switch (route.name) {
+            case 'Map':
+              iconName = focused ? 'map' : 'map-outline'
+              break
             case 'Latest':
               iconName = focused ? 'compass' : 'compass-outline'
               break
@@ -67,6 +72,12 @@ export const MainTabNavigator: React.FC = () => {
         }
       })}
     >
+      <Tab.Screen
+        name="Map"
+        component={MapScreen}
+        options={{ tabBarLabel: 'Map' }}
+      />
+
       <Tab.Screen
         name="Latest"
         component={LatestClimbsScreen}
