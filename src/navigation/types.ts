@@ -44,6 +44,7 @@ export type RootStackParamList = {
   MainTabs: undefined
   Mountain: { canonicalUrl: string }
   LogClimb: { mountainId: string; mountainName: string }
+  GpxRoute: { routeId: string }
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> =

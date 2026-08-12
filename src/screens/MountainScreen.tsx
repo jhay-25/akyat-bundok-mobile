@@ -607,7 +607,15 @@ const MountainScreen: React.FC = () => {
                 <>
                   <View style={styles.rows}>
                     {gpxRoutes.map((route) => (
-                      <GpxRow key={route.id} route={route} />
+                      <GpxRow
+                        key={route.id}
+                        route={route}
+                        onPress={() =>
+                          navigation.navigate('GpxRoute', {
+                            routeId: route.id
+                          })
+                        }
+                      />
                     ))}
                   </View>
                   {gpxRoutes.length < gpxCount && (
@@ -766,7 +774,13 @@ const NearbyCard = ({
   </TouchableOpacity>
 )
 
-const GpxRow = ({ route }: { route: GpxRoute }) => {
+const GpxRow = ({
+  route,
+  onPress
+}: {
+  route: GpxRoute
+  onPress: () => void
+}) => {
   const date = route.created_at
     ? new Date(route.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -779,7 +793,11 @@ const GpxRow = ({ route }: { route: GpxRoute }) => {
     : 'Unknown'
 
   return (
-    <View style={styles.gpxRow}>
+    <TouchableOpacity
+      style={styles.gpxRow}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.gpxIcon}>
         <Ionicons
           name="trail-sign-outline"
@@ -801,7 +819,7 @@ const GpxRow = ({ route }: { route: GpxRoute }) => {
           </Text>
         ) : null}
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 

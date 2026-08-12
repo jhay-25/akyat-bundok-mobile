@@ -125,7 +125,7 @@ const DARK_MAP_STYLE: any[] = [
 ]
 
 // Match the web app's elevation-based mountain marker colors
-function getMarkerColor(elevation: number | null): string {
+export function getMarkerColor(elevation: number | null): string {
   const m = elevation ?? 0
   if (m >= 6000) return '#e11d48' // rose-600
   if (m >= 4000) return '#f97316' // orange-500
