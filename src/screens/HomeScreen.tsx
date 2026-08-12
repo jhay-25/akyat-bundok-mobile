@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../contexts/AuthContext'
 import { colors } from '../theme/colors'
-import { spacing, typography, borderRadius, shadows } from '../theme'
+import { spacing, typography, borderRadius } from '../theme'
 import getImageUrl, { getAssetsImageUrl } from '../utils/getImageUrl'
 import { supabase } from '../utils/supabase'
 import type { ClimbLog } from '../types'
@@ -130,8 +130,6 @@ const HomeScreen: React.FC = () => {
             resizeMode="cover"
           >
             <View style={styles.bannerOverlay} />
-            <View style={styles.bannerGradientHorizontal} />
-            <View style={styles.bannerGradientVertical} />
             <View style={styles.profileImageContainer}>
               {profileImage ? (
                 <Image
@@ -233,7 +231,7 @@ const HomeScreen: React.FC = () => {
               <Ionicons
                 name="trending-up"
                 size={64}
-                color={colors.text.tertiary}
+                color={colors.accent.green}
               />
               <Text style={styles.emptyStateText}>No climbs yet</Text>
               <Text style={styles.emptyStateSubtext}>
@@ -262,18 +260,8 @@ const styles = StyleSheet.create({
   },
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(21, 23, 40, 0.5)',
+    backgroundColor: colors.overlay.image,
     zIndex: 1
-  },
-  bannerGradientHorizontal: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(21, 23, 40, 0.3)',
-    zIndex: 2
-  },
-  bannerGradientVertical: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10, 10, 10, 0.4)',
-    zIndex: 3
   },
   profileHeader: {
     alignItems: 'center',
@@ -289,17 +277,17 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: colors.border.primary
+    borderColor: colors.border.subtle
   },
   profileImagePlaceholder: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: colors.border.primary
+    borderColor: colors.border.subtle
   },
   fullName: {
     fontSize: typography.fontSize['2xl'],
@@ -319,7 +307,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: colors.white,
+    borderColor: colors.border.subtle,
     backgroundColor: 'transparent',
     marginTop: spacing.sm,
     zIndex: 10
@@ -327,7 +315,7 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: colors.accent.green,
     letterSpacing: 1
   },
   statsContainer: {
@@ -336,7 +324,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.border.primary
+    borderColor: colors.border.subtle
   },
   statItem: {
     flex: 1,
@@ -357,7 +345,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: colors.border.primary,
+    backgroundColor: colors.border.subtle,
     marginHorizontal: spacing.md
   },
   logsSection: {
@@ -392,7 +380,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.error.border,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     paddingVertical: spacing.base,
     marginHorizontal: spacing.xl,
     marginTop: spacing['3xl'],

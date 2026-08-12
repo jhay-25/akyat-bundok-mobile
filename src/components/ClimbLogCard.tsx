@@ -194,24 +194,18 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({ log }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background.secondary,
-    borderRadius: 20,
+    backgroundColor: colors.background.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
     overflow: 'hidden',
-    marginBottom: 4,
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 1
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4
+    marginBottom: 4
   },
   cardHeader: {
     padding: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.primary
+    borderBottomColor: colors.border.subtle
   },
   userInfo: {
     flexDirection: 'row',
@@ -284,7 +278,9 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.background.card,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative'
@@ -297,7 +293,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 12,
     right: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.overlay.icon,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16
@@ -317,13 +313,13 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1
   },
   seeMoreText: {
-    color: colors.text.tertiary,
+    color: colors.accent.green,
     fontWeight: '600',
     fontSize: 14
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    backgroundColor: colors.overlay.modal,
     justifyContent: 'center'
   },
   modalHeader: {
@@ -346,7 +342,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.background.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.strong,
     justifyContent: 'center',
     alignItems: 'center'
   },

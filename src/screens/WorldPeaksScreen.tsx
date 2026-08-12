@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { CountryWithMountainCount, Continent } from '../types'
 import { API_CONFIG } from '../constants'
 import { colors } from '../theme/colors'
-import { spacing, typography, borderRadius, shadows } from '../theme'
+import { spacing, typography, borderRadius } from '../theme'
 
 const WorldPeaksScreen: React.FC = () => {
   const [countries, setCountries] = useState<CountryWithMountainCount[]>([])
@@ -143,7 +143,7 @@ const WorldPeaksScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.text.primary} />
+          <ActivityIndicator size="large" color={colors.accent.green} />
           <Text style={styles.loadingText}>Loading world peaks...</Text>
         </View>
       </SafeAreaView>
@@ -167,6 +167,7 @@ const WorldPeaksScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>World Peaks</Text>
+        <View style={styles.titleAccent} />
         <Text style={styles.subtitle}>
           Discover breathtaking peaks around the world
         </Text>
@@ -243,7 +244,7 @@ const WorldPeaksScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.text.primary}
+            tintColor={colors.accent.green}
           />
         }
         ListEmptyComponent={
@@ -284,6 +285,14 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     letterSpacing: -1
   },
+  titleAccent: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.accent.green,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm
+  },
   subtitle: {
     fontSize: typography.fontSize.sm,
     color: colors.text.tertiary
@@ -291,14 +300,14 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.card,
     marginHorizontal: spacing.xl,
     marginTop: spacing.base,
     marginBottom: spacing.md,
     paddingHorizontal: spacing.base,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.primary
+    borderColor: colors.border.subtle
   },
   searchIcon: {
     marginRight: spacing.md
@@ -330,21 +339,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.background.pill,
     borderWidth: 1,
-    borderColor: colors.border.primary
+    borderColor: colors.border.pill
   },
   continentChipActive: {
-    backgroundColor: colors.text.primary,
-    borderColor: colors.text.primary
+    backgroundColor: colors.accent.greenSoft,
+    borderColor: colors.accent.greenBorder
   },
   continentChipText: {
     fontSize: typography.fontSize.xs,
-    color: colors.text.primary,
+    color: colors.text.secondary,
     fontWeight: typography.fontWeight.medium
   },
   continentChipTextActive: {
-    color: colors.background.primary,
+    color: colors.accent.green,
     fontWeight: typography.fontWeight.semibold
   },
   listContainer: {
@@ -353,10 +362,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl
   },
   countryItem: {
-    backgroundColor: colors.background.secondary,
-    borderRadius: borderRadius.full,
-    marginBottom: spacing.base,
-    ...shadows.lg
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    marginBottom: spacing.base
   },
   countryContent: {
     padding: spacing.lg,
@@ -373,7 +383,7 @@ const styles = StyleSheet.create({
   },
   mountainCount: {
     fontSize: typography.fontSize.sm,
-    color: colors.text.tertiary,
+    color: colors.accent.green,
     marginLeft: spacing.md,
     fontWeight: typography.fontWeight.semibold
   },
@@ -389,13 +399,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base
   },
   retryButton: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.accent.green,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    borderRadius: borderRadius.lg
+    borderRadius: borderRadius.md
   },
   retryButtonText: {
-    color: colors.text.primary,
+    color: colors.black,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold
   },

@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../contexts/AuthContext'
 import { AuthStackNavigationProp } from '../navigation/types'
 import { colors } from '../theme/colors'
-import { spacing, typography, borderRadius, shadows } from '../theme'
+import { spacing, typography, borderRadius } from '../theme'
 
 interface Props {
   navigation: AuthStackNavigationProp<'SignIn'>
@@ -51,8 +51,8 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.header}>
-            <Image 
-              source={require('../../assets/icon.png')} 
+            <Image
+              source={require('../../assets/icon.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -94,7 +94,7 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.black} />
               ) : (
                 <Text style={styles.signInButtonText}>SIGN IN</Text>
               )}
@@ -161,29 +161,27 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm
   },
   input: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.card,
     borderWidth: 1,
-    borderColor: colors.border.primary,
+    borderColor: colors.border.subtle,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
     fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    ...shadows.sm
+    color: colors.text.primary
   },
   signInButton: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.accent.green,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
-    marginTop: spacing.lg,
-    ...shadows.md
+    marginTop: spacing.lg
   },
   disabledButton: {
     opacity: 0.6
   },
   signInButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     letterSpacing: 1
@@ -199,7 +197,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: typography.fontSize.base,
-    color: colors.text.primary,
+    color: colors.accent.green,
     fontWeight: typography.fontWeight.semibold
   }
 })

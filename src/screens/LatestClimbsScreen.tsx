@@ -124,7 +124,7 @@ const LatestClimbsScreen: React.FC = () => {
     if (!loadingMore) return null
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#999" />
+        <ActivityIndicator size="small" color={colors.text.tertiary} />
       </View>
     )
   }
@@ -145,7 +145,7 @@ const LatestClimbsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#999" />
+        <ActivityIndicator size="large" color={colors.text.tertiary} />
         <Text style={styles.loadingText}>Loading latest climbs...</Text>
       </View>
     )
@@ -155,6 +155,7 @@ const LatestClimbsScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Latest</Text>
+        <View style={styles.titleAccent} />
         <Text style={styles.subtitle}>
           See the latest climbs around the world!
         </Text>
@@ -210,9 +211,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text.primary,
     letterSpacing: -1
+  },
+  titleAccent: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.accent.green,
+    marginTop: 4,
+    marginBottom: 8
   },
   subtitle: {
     fontSize: 14,
@@ -255,7 +264,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'center'

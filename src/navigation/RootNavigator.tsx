@@ -33,7 +33,7 @@ export const RootNavigator: React.FC = () => {
   if (loading || isCheckingUsername) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.brown[500]} />
+        <ActivityIndicator size="large" color={colors.accent.green} />
       </View>
     )
   }

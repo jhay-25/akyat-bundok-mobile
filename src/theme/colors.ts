@@ -1,60 +1,58 @@
 /**
  * App Color Palette
- * Modern dark mode design system
+ * Dark mode design system — follows Akyat Bundok design principles:
+ *   - Subtle borders (white at low opacity)
+ *   - Low-opacity backgrounds
+ *   - Green as accent color
+ *   - Flat design (no heavy shadows)
  */
 export const colors = {
   // Background colors
   background: {
     primary: '#0A0A0A', // Main background
-    secondary: '#1A1A1A', // Cards, header
-    tertiary: '#2A2A2A', // Elevated elements
-    elevated: '#3A3A3A' // Buttons, interactive elements
+    card: 'rgba(255, 255, 255, 0.02)', // Cards, containers
+    cardHover: 'rgba(255, 255, 255, 0.04)', // Hover / pressed cards
+    elevated: 'rgba(255, 255, 255, 0.06)', // Active / selected elements
+    pill: 'rgba(255, 255, 255, 0.03)' // Pills / badges
   },
 
   // Text colors
   text: {
     primary: '#FFFFFF', // Primary text
-    secondary: '#CCCCCC', // Body text
-    tertiary: '#999999', // Secondary/muted text
-    quaternary: '#666666' // Inactive/disabled text
+    secondary: '#9CA3AF', // Secondary text (gray-400)
+    tertiary: '#6B7280', // Muted text / labels (gray-500)
+    quaternary: '#4B5563' // Inactive / disabled text (gray-600)
   },
 
-  // Border colors
+  // Border colors (subtle, low-opacity white)
   border: {
-    primary: '#2A2A2A', // Default borders
-    secondary: '#3A3A3A' // Elevated borders
+    subtle: 'rgba(255, 255, 255, 0.06)', // Cards, containers, dividers
+    strong: 'rgba(255, 255, 255, 0.08)', // Elevated borders
+    pill: 'rgba(255, 255, 255, 0.05)' // Pills / badges
   },
 
-  // Brown shades - Legacy brand colors (kept for compatibility)
-  brown: {
-    10: '#F9F6F2',
-    20: '#F4EDE4',
-    30: '#EEE4D7',
-    50: '#CDAD87',
-    500: '#ae8048',
-    800: '#886439',
-    900: '#7B5B34'
-  },
-
-  // Blue accent
-  blue: {
-    500: '#4875AD'
-  },
-
-  // Main dark colors (legacy)
-  main: {
-    400: '#24273b',
-    500: '#151728'
+  // Accent (green-400)
+  accent: {
+    green: '#4ADE80', // Active states, badges, highlights
+    greenSoft: 'rgba(74, 222, 128, 0.10)', // bg-green-400/10
+    greenBorder: 'rgba(74, 222, 128, 0.30)' // border-green-400/30
   },
 
   // Semantic colors
   error: {
-    background: '#2A1A0A',
-    border: '#FF9800',
-    text: '#FFB74D'
+    background: 'rgba(248, 113, 113, 0.10)',
+    border: 'rgba(248, 113, 113, 0.30)',
+    text: '#F87171'
   },
-  success: '#28a745',
-  warning: '#ffc107',
+  success: '#4ADE80',
+  warning: '#FBBF24',
+
+  // Overlays
+  overlay: {
+    image: 'rgba(0, 0, 0, 0.60)', // Text / badges overlaid on images
+    icon: 'rgba(0, 0, 0, 0.70)', // Icon badges over images
+    modal: 'rgba(0, 0, 0, 0.95)' // Full-screen image viewer
+  },
 
   // Common colors
   white: '#FFFFFF',

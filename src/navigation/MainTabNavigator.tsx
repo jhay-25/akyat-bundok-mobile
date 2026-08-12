@@ -49,11 +49,12 @@ export const MainTabNavigator: React.FC = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />
         },
-        tabBarActiveTintColor: colors.text.primary,
-        tabBarInactiveTintColor: colors.text.quaternary,
+        tabBarActiveTintColor: colors.accent.green,
+        tabBarInactiveTintColor: colors.text.tertiary,
         tabBarStyle: {
-          backgroundColor: colors.background.secondary,
-          borderTopWidth: 0,
+          backgroundColor: colors.background.primary,
+          borderTopWidth: 1,
+          borderTopColor: colors.border.subtle,
           height: 60 + insets.bottom
         },
         tabBarLabelStyle: {

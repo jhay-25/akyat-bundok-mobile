@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../utils/supabase'
 import { colors } from '../theme/colors'
-import { spacing, typography, borderRadius, shadows } from '../theme'
+import { spacing, typography, borderRadius } from '../theme'
 import { VALIDATION } from '../constants'
 
 interface Props {
@@ -196,7 +196,7 @@ const UsernameSetupScreen: React.FC<Props> = ({ navigation }) => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.black} />
               ) : (
                 <Text style={styles.submitButtonText}>CONTINUE</Text>
               )}
@@ -246,11 +246,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg
   },
   infoBox: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.card,
     borderRadius: borderRadius.md,
     padding: spacing.base,
     borderWidth: 1,
-    borderColor: colors.border.primary
+    borderColor: colors.border.subtle
   },
   infoText: {
     fontSize: typography.fontSize.sm,
@@ -277,15 +277,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm
   },
   input: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.card,
     borderWidth: 1,
-    borderColor: colors.border.primary,
+    borderColor: colors.border.subtle,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
     fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    ...shadows.sm
+    color: colors.text.primary
   },
   inputError: {
     borderColor: colors.error.border,
@@ -304,18 +303,17 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs
   },
   submitButton: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.accent.green,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
-    marginTop: spacing.lg,
-    ...shadows.md
+    marginTop: spacing.lg
   },
   disabledButton: {
     opacity: 0.6
   },
   submitButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     letterSpacing: 1
@@ -327,7 +325,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border.secondary
+    borderColor: colors.border.subtle
   },
   signOutButtonText: {
     color: colors.text.secondary,

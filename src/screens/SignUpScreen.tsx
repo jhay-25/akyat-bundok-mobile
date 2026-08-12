@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../contexts/AuthContext'
 import { AuthStackNavigationProp } from '../navigation/types'
 import { colors } from '../theme/colors'
-import { spacing, typography, borderRadius, shadows } from '../theme'
+import { spacing, typography, borderRadius } from '../theme'
 import { VALIDATION } from '../constants'
 
 interface Props {
@@ -125,7 +125,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.black} />
               ) : (
                 <Text style={styles.signUpButtonText}>SIGN UP</Text>
               )}
@@ -192,29 +192,27 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm
   },
   input: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.card,
     borderWidth: 1,
-    borderColor: colors.border.primary,
+    borderColor: colors.border.subtle,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
     fontSize: typography.fontSize.base,
-    color: colors.text.primary,
-    ...shadows.sm
+    color: colors.text.primary
   },
   signUpButton: {
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.accent.green,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
-    marginTop: spacing.lg,
-    ...shadows.md
+    marginTop: spacing.lg
   },
   disabledButton: {
     opacity: 0.6
   },
   signUpButtonText: {
-    color: colors.white,
+    color: colors.black,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     letterSpacing: 1
@@ -230,7 +228,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: typography.fontSize.base,
-    color: colors.text.primary,
+    color: colors.accent.green,
     fontWeight: typography.fontWeight.semibold
   }
 })
