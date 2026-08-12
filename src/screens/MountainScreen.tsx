@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -11,7 +11,12 @@ import {
   Alert
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+  RouteProp
+} from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { Ionicons } from '@expo/vector-icons'
 import { RootStackParamList } from '../navigation/types'
@@ -123,6 +128,7 @@ const MountainScreen: React.FC = () => {
   const photosFetchedRef = useRef(false)
   const gpxFetchedRef = useRef(false)
 
+  // Load mountain details once
   useEffect(() => {
     let active = true
     ;(async () => {
@@ -137,37 +143,6 @@ const MountainScreen: React.FC = () => {
         setCountries(detail.countries || [])
         setRegions(detail.regions || [])
         setProvinces(detail.provinces || [])
-
-        const [logsRes, climbersRes, nearbyRes] = await Promise.all([
-          fetch(
-            `${API_CONFIG.BASE_URL}/api/public/mountains/${canonicalUrl}/logs?limit=20&page=1`
-          ),
-          fetch(
-            `${API_CONFIG.BASE_URL}/api/public/mountains/${canonicalUrl}/climbers?limit=5`
-          ),
-          fetch(
-            `${API_CONFIG.BASE_URL}/api/public/mountains/nearby?latitude=${detail.mountain.latitude}&longitude=${detail.mountain.longitude}&limit=10`
-          )
-        ])
-        if (!active) return
-        if (logsRes.ok) {
-          const data = await logsRes.json()
-          setLogs(data.results || [])
-          setLogsCount(data.count ?? (data.results?.length || 0))
-          setLogsPage(data.page ?? 1)
-        }
-        if (climbersRes.ok) {
-          const data = await climbersRes.json()
-          setClimbers(data.results || [])
-        }
-        if (nearbyRes.ok) {
-          const data = await nearbyRes.json()
-          setNearby(
-            (data.results || []).filter(
-              (m: NearbyMountain) => m.canonical_url !== canonicalUrl
-            )
-          )
-        }
       } catch (e) {
         if (active)
           setError(e instanceof Error ? e.message : 'An error occurred')
@@ -179,6 +154,51 @@ const MountainScreen: React.FC = () => {
       active = false
     }
   }, [canonicalUrl])
+
+  // Fetch logs / climbers / nearby, and refresh every time the screen regains
+  // focus (e.g., when returning from the Log Climb screen).
+  const fetchListData = useCallback(async () => {
+    if (!mountain) return
+    try {
+      const [logsRes, climbersRes, nearbyRes] = await Promise.all([
+        fetch(
+          `${API_CONFIG.BASE_URL}/api/public/mountains/${canonicalUrl}/logs?limit=20&page=1`
+        ),
+        fetch(
+          `${API_CONFIG.BASE_URL}/api/public/mountains/${canonicalUrl}/climbers?limit=5`
+        ),
+        fetch(
+          `${API_CONFIG.BASE_URL}/api/public/mountains/nearby?latitude=${mountain.latitude}&longitude=${mountain.longitude}&limit=10`
+        )
+      ])
+      if (logsRes.ok) {
+        const data = await logsRes.json()
+        setLogs(data.results || [])
+        setLogsCount(data.count ?? (data.results?.length || 0))
+        setLogsPage(data.page ?? 1)
+      }
+      if (climbersRes.ok) {
+        const data = await climbersRes.json()
+        setClimbers(data.results || [])
+      }
+      if (nearbyRes.ok) {
+        const data = await nearbyRes.json()
+        setNearby(
+          (data.results || []).filter(
+            (m: NearbyMountain) => m.canonical_url !== canonicalUrl
+          )
+        )
+      }
+    } catch (_) {
+      // ignore transient network errors
+    }
+  }, [canonicalUrl, mountain?.latitude, mountain?.longitude])
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchListData()
+    }, [fetchListData])
+  )
 
   // Load photos lazily when the Photos tab is opened
   useEffect(() => {
