@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   View,
   Text,
@@ -22,6 +23,11 @@ const LatestClimbsScreen: React.FC = () => {
   const [page, setPage] = useState(1)
   const [totalLogs, setTotalLogs] = useState(0)
   const [error, setError] = useState<string | null>(null)
+
+  // Mirrors `logs` for synchronous reads inside fetchLogs, so the callback
+  // stays stable (no stale-closure re-creation on every load).
+  const logsRef = useRef<ClimbLog[]>([])
+  const hasFocusedRef = useRef(false)
 
   const fetchLogs = useCallback(
     async (pageNum: number, isRefresh = false) => {
@@ -58,17 +64,19 @@ const LatestClimbsScreen: React.FC = () => {
         }
 
         if (pageNum === 1) {
+          logsRef.current = newLogs
           setLogs(newLogs)
           if (data.count !== undefined) {
             setTotalLogs(data.count)
           }
         } else {
-          setLogs((prev) => [...prev, ...newLogs])
+          logsRef.current = [...logsRef.current, ...newLogs]
+          setLogs(logsRef.current)
         }
 
         setHasMore(
           newLogs.length > 0 &&
-            (data.count ? logs.length + newLogs.length < data.count : true)
+            (data.count ? logsRef.current.length < data.count : true)
         )
         setError(null)
       } catch (err) {
@@ -95,12 +103,22 @@ const LatestClimbsScreen: React.FC = () => {
         setLoadingMore(false)
       }
     },
-    [logs.length]
+    []
   )
 
-  useEffect(() => {
-    fetchLogs(1)
-  }, [])
+  // Refetch the feed whenever the screen regains focus (e.g., after deleting
+  // a climb from the log detail screen). The first focus does the full
+  // loading state; later focuses refresh in place.
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasFocusedRef.current) {
+        hasFocusedRef.current = true
+        fetchLogs(1)
+        return
+      }
+      fetchLogs(1, true)
+    }, [fetchLogs])
+  )
 
   const handleRefresh = () => {
     setPage(1)

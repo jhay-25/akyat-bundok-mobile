@@ -9,10 +9,13 @@ import {
   Dimensions,
   ScrollView
 } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
 import { ClimbLog } from '../types'
 import getImageUrl from '../utils/getImageUrl'
 import { VALIDATION } from '../constants'
 import { colors } from '../theme/colors'
+import { RootStackParamList } from '../navigation/types'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -29,6 +32,8 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
   const [imagesExpanded, setImagesExpanded] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const { mountain, user, log_images, climb_report, climb_date } = log
   const hasImages = log_images.length > 0
@@ -61,127 +66,134 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
 
   return (
     <View style={styles.card}>
-      {showUser && (
-        <View style={styles.cardHeader}>
-          <View style={styles.userInfo}>
-            <View style={styles.avatar}>
-              {user.image_path ? (
-                <Image
-                  source={{ uri: getImageUrl(user.image_path) }}
-                  style={styles.avatarImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Text style={styles.avatarText}>
-                  {user.username.charAt(0).toUpperCase()}
-                </Text>
-              )}
-            </View>
-            <View style={styles.userDetails}>
-              <Text style={styles.displayName}>{displayName}</Text>
-              <Text
-                style={styles.metaLine}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {formattedDate}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* Image / elevation placeholder — matches the web LogCard */}
-      {hasImages ? (
-        <View style={styles.imageSection}>
-          <TouchableOpacity
-            style={styles.imageWrapper}
-            onPress={() => setModalVisible(true)}
-            activeOpacity={0.95}
-          >
-            <Image
-              source={{ uri: getImageUrl(log_images[0].image_path) }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            {/* Elevation badge (top-left) */}
-            <View style={styles.elevationBadge}>
-              <Text style={styles.elevationBadgeText}>
-                {mountain.elevation_m
-                  ? `${mountain.elevation_m.toLocaleString()}m`
-                  : '—'}
-              </Text>
-            </View>
-            {/* Photo count toggle (bottom-right) */}
-            {log_images.length > 1 && (
-              <TouchableOpacity
-                style={styles.imageCountButton}
-                onPress={() => setImagesExpanded((prev) => !prev)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.imageCountButtonText}>
-                  {imagesExpanded
-                    ? 'Collapse'
-                    : `+${log_images.length - 1} more`}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </TouchableOpacity>
-          {/* Expanded images (inline, like the web) */}
-          {imagesExpanded &&
-            log_images.slice(1).map((image) => (
-              <View key={image.id} style={styles.expandedImageWrapper}>
-                <Image
-                  source={{ uri: getImageUrl(image.image_path) }}
-                  style={styles.expandedImage}
-                  resizeMode="cover"
-                />
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={() => navigation.navigate('Log', { logId: log.id })}
+      >
+        {showUser && (
+          <View style={styles.cardHeader}>
+            <View style={styles.userInfo}>
+              <View style={styles.avatar}>
+                {user.image_path ? (
+                  <Image
+                    source={{ uri: getImageUrl(user.image_path) }}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text style={styles.avatarText}>
+                    {user.username.charAt(0).toUpperCase()}
+                  </Text>
+                )}
               </View>
-            ))}
-        </View>
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <Text style={styles.placeholderElevation}>
-            {mountain.elevation_m ? mountain.elevation_m.toLocaleString() : '—'}
-          </Text>
-          <Text style={styles.placeholderLabel}>meters</Text>
-        </View>
-      )}
-
-      {/* Content */}
-      <View style={styles.contentSection}>
-        <Text style={styles.mountainName} numberOfLines={1}>
-          {mountain.name}
-        </Text>
-
-        <Text style={styles.dateText}>{formattedDate}</Text>
-
-        {countries.length > 0 && (
-          <View style={styles.countriesRow}>
-            {countries.map((c) => (
-              <View key={c.id} style={styles.countryChip}>
-                <Text style={styles.countryChipText}>{c.name}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {hasClimbReport && (
-          <View style={styles.reportContainer}>
-            <Text style={styles.reportText}>
-              {displayReport}
-              {shouldTruncate && (
+              <View style={styles.userDetails}>
+                <Text style={styles.displayName}>{displayName}</Text>
                 <Text
-                  style={styles.seeMoreText}
-                  onPress={() => setShowFullReport(!showFullReport)}
+                  style={styles.metaLine}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
-                  {showFullReport ? ' less' : '...more'}
+                  {formattedDate}
                 </Text>
-              )}
-            </Text>
+              </View>
+            </View>
           </View>
         )}
-      </View>
+
+        {/* Image / elevation placeholder — matches the web LogCard */}
+        {hasImages ? (
+          <View style={styles.imageSection}>
+            <TouchableOpacity
+              style={styles.imageWrapper}
+              onPress={() => setModalVisible(true)}
+              activeOpacity={0.95}
+            >
+              <Image
+                source={{ uri: getImageUrl(log_images[0].image_path) }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+              {/* Elevation badge (top-left) */}
+              <View style={styles.elevationBadge}>
+                <Text style={styles.elevationBadgeText}>
+                  {mountain.elevation_m
+                    ? `${mountain.elevation_m.toLocaleString()}m`
+                    : '—'}
+                </Text>
+              </View>
+              {/* Photo count toggle (bottom-right) */}
+              {log_images.length > 1 && (
+                <TouchableOpacity
+                  style={styles.imageCountButton}
+                  onPress={() => setImagesExpanded((prev) => !prev)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.imageCountButtonText}>
+                    {imagesExpanded
+                      ? 'Collapse'
+                      : `+${log_images.length - 1} more`}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+            {/* Expanded images (inline, like the web) */}
+            {imagesExpanded &&
+              log_images.slice(1).map((image) => (
+                <View key={image.id} style={styles.expandedImageWrapper}>
+                  <Image
+                    source={{ uri: getImageUrl(image.image_path) }}
+                    style={styles.expandedImage}
+                    resizeMode="cover"
+                  />
+                </View>
+              ))}
+          </View>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.placeholderElevation}>
+              {mountain.elevation_m
+                ? mountain.elevation_m.toLocaleString()
+                : '—'}
+            </Text>
+            <Text style={styles.placeholderLabel}>meters</Text>
+          </View>
+        )}
+
+        {/* Content */}
+        <View style={styles.contentSection}>
+          <Text style={styles.mountainName} numberOfLines={1}>
+            {mountain.name}
+          </Text>
+
+          <Text style={styles.dateText}>{formattedDate}</Text>
+
+          {countries.length > 0 && (
+            <View style={styles.countriesRow}>
+              {countries.map((c) => (
+                <View key={c.id} style={styles.countryChip}>
+                  <Text style={styles.countryChipText}>{c.name}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {hasClimbReport && (
+            <View style={styles.reportContainer}>
+              <Text style={styles.reportText}>
+                {displayReport}
+                {shouldTruncate && (
+                  <Text
+                    style={styles.seeMoreText}
+                    onPress={() => setShowFullReport(!showFullReport)}
+                  >
+                    {showFullReport ? ' less' : '...more'}
+                  </Text>
+                )}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
 
       <Modal
         visible={modalVisible}

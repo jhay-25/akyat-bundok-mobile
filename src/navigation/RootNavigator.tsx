@@ -7,6 +7,7 @@ import UsernameSetupScreen from '../screens/UsernameSetupScreen'
 import MountainScreen from '../screens/MountainScreen'
 import LogClimbScreen from '../screens/LogClimbScreen'
 import GpxRouteScreen from '../screens/GpxRouteScreen'
+import LogDetailScreen from '../screens/LogDetailScreen'
 import { useAuth } from '../contexts/AuthContext'
 import { colors } from '../theme/colors'
 import { RootStackParamList } from './types'
@@ -56,6 +57,7 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="Mountain" component={MountainScreen} />
         <Stack.Screen name="LogClimb" component={LogClimbScreen} />
         <Stack.Screen name="GpxRoute" component={GpxRouteScreen} />
+        <Stack.Screen name="Log" component={LogDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   )

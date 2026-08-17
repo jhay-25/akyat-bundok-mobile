@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   View,
   Text,
@@ -90,9 +91,13 @@ const HomeScreen: React.FC = () => {
     }
   }, [profile?.id])
 
-  useEffect(() => {
-    fetchUserLogs()
-  }, [fetchUserLogs])
+  // Refetch whenever the screen regains focus (e.g., after deleting a climb
+  // from the log detail screen) or the profile changes.
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserLogs()
+    }, [fetchUserLogs])
+  )
 
   const handleRefresh = () => {
     setRefreshing(true)

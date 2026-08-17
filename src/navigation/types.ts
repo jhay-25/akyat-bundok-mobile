@@ -1,5 +1,8 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
-import { CompositeNavigationProp } from '@react-navigation/native'
+import {
+  CompositeNavigationProp,
+  NavigatorScreenParams
+} from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 
 /**
@@ -41,10 +44,11 @@ export type RootNavigationProp = CompositeNavigationProp<
  */
 export type RootStackParamList = {
   UsernameSetup: undefined
-  MainTabs: undefined
+  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined
   Mountain: { canonicalUrl: string }
   LogClimb: { mountainId: string; mountainName: string }
   GpxRoute: { routeId: string }
+  Log: { logId: string }
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> =
