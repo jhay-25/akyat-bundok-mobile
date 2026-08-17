@@ -50,6 +50,7 @@ export type RootStackParamList = {
   LogUpdate: { logId: string }
   GpxRoute: { routeId: string }
   Log: { logId: string }
+  UserProfile: { username: string }
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> =

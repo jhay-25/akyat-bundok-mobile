@@ -321,12 +321,17 @@ const LogDetailScreen: React.FC = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* User header — tap to open the user's profile */}
+        {/* User header — own profile goes to the Home tab, others to their profile */}
         <TouchableOpacity
           style={styles.userRow}
           activeOpacity={0.7}
-          onPress={goToProfile}
-          disabled={!isOwner}
+          onPress={() => {
+            if (isOwner) {
+              goToProfile()
+            } else {
+              navigation.navigate('UserProfile', { username: user.username })
+            }
+          }}
         >
           <View style={styles.avatar}>
             {user.image_path ? (
@@ -352,13 +357,11 @@ const LogDetailScreen: React.FC = () => {
                 : ''}
             </Text>
           </View>
-          {isOwner && (
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color={colors.text.tertiary}
-            />
-          )}
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={colors.text.tertiary}
+          />
         </TouchableOpacity>
 
         {/* Mountain — tap to open the mountain page */}
