@@ -124,7 +124,11 @@ const MountainSearchScreen: React.FC = () => {
             }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
+            <Ionicons
+              name="close-circle"
+              size={18}
+              color={colors.text.tertiary}
+            />
           </TouchableOpacity>
         )}
         <TouchableOpacity

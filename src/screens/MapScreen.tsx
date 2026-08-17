@@ -246,9 +246,8 @@ const MapScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const insets = useSafeAreaInsets()
   const route = useRoute()
-  const pickMode = !!(
-    route.params as { pickMode?: boolean } | undefined
-  )?.pickMode
+  const pickMode = !!(route.params as { pickMode?: boolean } | undefined)
+    ?.pickMode
 
   const nativeMapType = resolveNativeMapType(mapStyle)
   const tileUrl = resolveTileUrl(mapStyle)
@@ -699,9 +698,7 @@ const MapScreen: React.FC = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder={
-              pickMode
-                ? 'Jump to a place...'
-                : 'Search for a peak or place...'
+              pickMode ? 'Jump to a place...' : 'Search for a peak or place...'
             }
             placeholderTextColor={colors.text.tertiary}
             autoCapitalize="none"
