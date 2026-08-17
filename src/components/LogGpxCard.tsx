@@ -1,15 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons } from '@expo/vector-icons'
 import { API_CONFIG } from '../constants'
 import { colors } from '../theme/colors'
 import { spacing, typography, borderRadius } from '../theme'
-import {
-  parseGpxPoints,
-  computeStats,
-  GpxPoint,
-  GpxStats
-} from '../utils/gpxParser'
+import { parseGpxPoints, computeStats, GpxStats } from '../utils/gpxParser'
 
 interface LogGpxCardProps {
   gpxPath: string
@@ -34,15 +30,44 @@ function StatItem({ icon, iconColor, label, value }: StatItemProps) {
   )
 }
 
+const GPX_CACHE_PREFIX = 'logGpx:'
+const GPX_CACHE_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+interface GpxCacheEntry {
+  stats: GpxStats
+  hasPoints: boolean
+  cachedAt: number
+}
+
 const LogGpxCard: React.FC<LogGpxCardProps> = ({ gpxPath }) => {
-  const [points, setPoints] = useState<GpxPoint[]>([])
+  const [stats, setStats] = useState<GpxStats | null>(null)
+  const [hasPoints, setHasPoints] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
+    const cacheKey = `${GPX_CACHE_PREFIX}${gpxPath}`
+
     ;(async () => {
       try {
+        // 1) Serve from cache first — revisiting a log is instant
+        const cached = await AsyncStorage.getItem(cacheKey)
+        if (cached) {
+          const entry = JSON.parse(cached) as GpxCacheEntry
+          if (
+            entry &&
+            typeof entry.stats === 'object' &&
+            Date.now() - entry.cachedAt < GPX_CACHE_TTL
+          ) {
+            if (!active) return
+            setStats(entry.stats)
+            setHasPoints(entry.hasPoints)
+            return
+          }
+        }
+
+        // 2) Get a presigned download URL
         const dlRes = await fetch(
           `${API_CONFIG.BASE_URL}/api/public/logs/gpx/download/${encodeURIComponent(gpxPath)}`
         )
@@ -51,12 +76,24 @@ const LogGpxCard: React.FC<LogGpxCardProps> = ({ gpxPath }) => {
         const url: string | undefined = data?.url
         if (!url) throw new Error('GPX file unavailable')
 
+        // 3) Download the file, parse the track, compute stats
         const gpxRes = await fetch(url)
         if (!gpxRes.ok) throw new Error('Failed to download GPX')
         const xml = await gpxRes.text()
         const parsed = parseGpxPoints(xml)
+        const computed = computeStats(parsed)
         if (!active) return
-        setPoints(parsed)
+
+        setStats(computed)
+        setHasPoints(parsed.length > 0)
+
+        // 4) Cache for next time (best-effort; we only store the tiny stats)
+        const entry: GpxCacheEntry = {
+          stats: computed,
+          hasPoints: parsed.length > 0,
+          cachedAt: Date.now()
+        }
+        AsyncStorage.setItem(cacheKey, JSON.stringify(entry)).catch(() => {})
       } catch (e) {
         if (active) {
           setError(e instanceof Error ? e.message : 'Failed to load GPX route')
@@ -70,8 +107,6 @@ const LogGpxCard: React.FC<LogGpxCardProps> = ({ gpxPath }) => {
     }
   }, [gpxPath])
 
-  const stats = useMemo<GpxStats>(() => computeStats(points), [points])
-
   if (loading) {
     return (
       <View style={styles.card}>
@@ -83,7 +118,7 @@ const LogGpxCard: React.FC<LogGpxCardProps> = ({ gpxPath }) => {
     )
   }
 
-  if (error || points.length === 0) {
+  if (error || !stats || !hasPoints) {
     return (
       <View style={styles.card}>
         <View style={styles.stateBox}>
