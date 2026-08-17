@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   FlatList,
   ActivityIndicator,
   StyleSheet,
@@ -36,6 +37,22 @@ interface MountainMarker {
   banner_path: string | null
   canonical_url: string
 }
+
+interface GeocodePlace {
+  name: string
+  latitude: number
+  longitude: number
+  country: string | null
+  country_code: string | null
+  state: string | null
+  city: string | null
+}
+
+type SearchSection =
+  | { type: 'location'; key: string }
+  | { type: 'header'; key: string; label: string }
+  | { type: 'mountain'; key: string; mountain: MountainMarker }
+  | { type: 'place'; key: string; place: GeocodePlace }
 
 const INITIAL_REGION: Region = {
   latitude: 12.8797,
@@ -168,6 +185,39 @@ function resolveTileUrl(style: MapStyleKey): string | null {
   return null
 }
 
+// Combine geocoded places and mountains into one ordered result list for the
+// search dropdown — mirrors the web app's peak-or-place search.
+function buildSearchSections(
+  mountains: MountainMarker[],
+  places: GeocodePlace[]
+): SearchSection[] {
+  const sections: SearchSection[] = []
+  const hasResults = mountains.length > 0 || places.length > 0
+  if (hasResults) {
+    sections.push({ type: 'location', key: 'current-location' })
+  }
+  if (mountains.length > 0) {
+    sections.push({ type: 'header', key: 'header-peaks', label: 'Peaks' })
+    mountains
+      .slice(0, 5)
+      .forEach((m) =>
+        sections.push({ type: 'mountain', key: `peak-${m.id}`, mountain: m })
+      )
+  }
+  if (places.length > 0) {
+    sections.push({ type: 'header', key: 'header-places', label: 'Places' })
+    places
+      .slice(0, 5)
+      .forEach((p, i) =>
+        sections.push({ type: 'place', key: `place-${i}`, place: p })
+      )
+  }
+  return sections
+}
+
+const subtitlePlace = (p: GeocodePlace) =>
+  [p.country, p.state, p.city].filter(Boolean).join(' · ')
+
 const MapScreen: React.FC = () => {
   const mapRef = useRef<MapView>(null)
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -179,7 +229,7 @@ const MapScreen: React.FC = () => {
   const [markers, setMarkers] = useState<MountainMarker[]>([])
   const [loadingMarkers, setLoadingMarkers] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<MountainMarker[]>([])
+  const [searchSections, setSearchSections] = useState<SearchSection[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [selected, setSelected] = useState<MountainMarker | null>(null)
   const [userCoords, setUserCoords] = useState<{
@@ -247,20 +297,29 @@ const MapScreen: React.FC = () => {
   const runSearch = useCallback(async (query: string) => {
     const q = query.trim()
     if (q.length < 3) {
-      setSearchResults([])
+      setSearchSections([])
       setIsSearching(false)
       return
     }
     setIsSearching(true)
     try {
-      const url = `${API_CONFIG.BASE_URL}/api/public/mountains/search?query=${encodeURIComponent(q)}`
-      const res = await fetch(url)
-      if (res.ok) {
-        const data = await res.json()
-        setSearchResults((data.results || []) as MountainMarker[])
-      }
+      const [mountainsRes, placesRes] = await Promise.all([
+        fetch(
+          `${API_CONFIG.BASE_URL}/api/public/mountains/search?query=${encodeURIComponent(q)}`
+        ),
+        fetch(
+          `${API_CONFIG.BASE_URL}/api/public/geocode/search?q=${encodeURIComponent(q)}&limit=5`
+        )
+      ])
+      const mountains: MountainMarker[] = mountainsRes.ok
+        ? (await mountainsRes.json()).results || []
+        : []
+      const places: GeocodePlace[] = placesRes.ok
+        ? (await placesRes.json()).results || []
+        : []
+      setSearchSections(buildSearchSections(mountains, places))
     } catch (_) {
-      setSearchResults([])
+      setSearchSections([])
     } finally {
       setIsSearching(false)
     }
@@ -270,7 +329,7 @@ const MapScreen: React.FC = () => {
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
     if (searchQuery.trim().length < 3) {
-      setSearchResults([])
+      setSearchSections([])
       setIsSearching(false)
       return
     }
@@ -364,14 +423,14 @@ const MapScreen: React.FC = () => {
 
   const selectMountain = useCallback((mountain: MountainMarker) => {
     setSelected(mountain)
-    setSearchResults([])
+    setSearchSections([])
     setSearchQuery('')
     Keyboard.dismiss()
   }, [])
 
   const searchSelect = useCallback((mountain: MountainMarker) => {
     setSelected(mountain)
-    setSearchResults([])
+    setSearchSections([])
     setSearchQuery('')
     Keyboard.dismiss()
     mapRef.current?.animateToRegion(
@@ -384,6 +443,63 @@ const MapScreen: React.FC = () => {
       700
     )
   }, [])
+
+  // A geocoded place → move the map view to that location (no mountain
+  // selected), matching the web app's place search.
+  const selectPlace = useCallback((place: GeocodePlace) => {
+    setSelected(null)
+    setSearchSections([])
+    setSearchQuery('')
+    Keyboard.dismiss()
+    mapRef.current?.animateToRegion(
+      {
+        latitude: place.latitude,
+        longitude: place.longitude,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1
+      },
+      700
+    )
+  }, [])
+
+  // "Use my current location" row in the search results.
+  const useMyLocation = useCallback(() => {
+    Keyboard.dismiss()
+    setSearchSections([])
+    setSearchQuery('')
+    const center = (coords: { latitude: number; longitude: number }) => {
+      mapRef.current?.animateToRegion(
+        {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02
+        },
+        700
+      )
+    }
+    if (userCoords) {
+      center(userCoords)
+      return
+    }
+    ;(async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync()
+        if (status !== 'granted') return
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced
+        })
+        const coordinate = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        }
+        setUserCoords(coordinate)
+        center(coordinate)
+      } catch (_) {
+        // Location unavailable
+      }
+    })()
+  }, [userCoords])
 
   const openMountain = useCallback(
     (mountain: MountainMarker) => {
@@ -538,7 +654,7 @@ const MapScreen: React.FC = () => {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search for a mountain..."
+            placeholder="Search for a peak or place..."
             placeholderTextColor={colors.text.tertiary}
             autoCapitalize="none"
             autoCorrect={false}
@@ -548,7 +664,7 @@ const MapScreen: React.FC = () => {
             <TouchableOpacity
               onPress={() => {
                 setSearchQuery('')
-                setSearchResults([])
+                setSearchSections([])
               }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -564,54 +680,119 @@ const MapScreen: React.FC = () => {
         {isSearching ? (
           <View style={styles.resultsPanel}>
             <ActivityIndicator size="small" color={colors.accent.green} />
-            <Text style={styles.resultsHint}>Searching peaks...</Text>
+            <Text style={styles.resultsHint}>Searching peaks & places...</Text>
           </View>
         ) : searchQuery.trim().length > 0 && searchQuery.trim().length < 3 ? (
           <View style={styles.resultsPanel}>
             <Text style={styles.resultsHint}>Type at least 3 characters</Text>
           </View>
-        ) : searchResults.length > 0 ? (
+        ) : searchSections.length > 0 ? (
           <FlatList
             style={styles.resultsList}
-            data={searchResults.slice(0, 8)}
-            keyExtractor={(item) => item.id}
+            data={searchSections}
+            keyExtractor={(item) => item.key}
             keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.resultItem}
-                onPress={() => searchSelect(item)}
-              >
-                <View style={styles.resultIcon}>
-                  <Ionicons
-                    name="trail-sign"
-                    size={16}
-                    color={colors.text.tertiary}
-                  />
-                </View>
-                <View style={styles.resultInfo}>
-                  <Text style={styles.resultName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {subtitle(item) ? (
-                    <Text style={styles.resultSubtitle} numberOfLines={1}>
-                      {subtitle(item)}
+            renderItem={({ item }) => {
+              if (item.type === 'header') {
+                return <Text style={styles.resultHeader}>{item.label}</Text>
+              }
+              if (item.type === 'location') {
+                return (
+                  <TouchableOpacity
+                    style={styles.resultItem}
+                    onPress={useMyLocation}
+                  >
+                    <View style={styles.resultIcon}>
+                      <Ionicons
+                        name="locate"
+                        size={16}
+                        color={colors.accent.green}
+                      />
+                    </View>
+                    <View style={styles.resultInfo}>
+                      <Text style={styles.resultName}>
+                        Use my current location
+                      </Text>
+                      <Text style={styles.resultSubtitle}>
+                        Center the map on where you are
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
+              if (item.type === 'place') {
+                const place = item.place
+                return (
+                  <TouchableOpacity
+                    style={styles.resultItem}
+                    onPress={() => selectPlace(place)}
+                  >
+                    <View style={styles.resultIcon}>
+                      <Ionicons
+                        name="location"
+                        size={16}
+                        color={colors.text.tertiary}
+                      />
+                    </View>
+                    <View style={styles.resultInfo}>
+                      <Text style={styles.resultName} numberOfLines={1}>
+                        {place.name}
+                      </Text>
+                      {subtitlePlace(place) ? (
+                        <Text style={styles.resultSubtitle} numberOfLines={1}>
+                          {subtitlePlace(place)}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                )
+              }
+              const mountain = item.mountain
+              return (
+                <TouchableOpacity
+                  style={styles.resultItem}
+                  onPress={() => searchSelect(mountain)}
+                >
+                  <View style={styles.resultIcon}>
+                    <Ionicons
+                      name="trail-sign"
+                      size={16}
+                      color={colors.text.tertiary}
+                    />
+                  </View>
+                  <View style={styles.resultInfo}>
+                    <Text style={styles.resultName} numberOfLines={1}>
+                      {mountain.name}
                     </Text>
-                  ) : null}
-                </View>
-                {item.elevation_m != null && (
-                  <Text style={styles.resultElevation}>
-                    {formatElevation(item.elevation_m)}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            )}
+                    {subtitle(mountain) ? (
+                      <Text style={styles.resultSubtitle} numberOfLines={1}>
+                        {subtitle(mountain)}
+                      </Text>
+                    ) : null}
+                  </View>
+                  {mountain.elevation_m != null && (
+                    <Text style={styles.resultElevation}>
+                      {formatElevation(mountain.elevation_m)}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )
+            }}
           />
         ) : searchQuery.trim().length >= 3 ? (
           <View style={styles.resultsPanel}>
-            <Text style={styles.resultsHint}>No mountains found</Text>
+            <Text style={styles.resultsHint}>No peaks or places found</Text>
           </View>
         ) : null}
       </SafeAreaView>
+
+      {/* Backdrop to close the layers panel when tapping outside of it */}
+      {layersOpen && (
+        <Pressable
+          style={styles.layersBackdrop}
+          onPress={() => setLayersOpen(false)}
+        />
+      )}
 
       {/* Map controls */}
       <View style={styles.mapControls}>
@@ -646,16 +827,13 @@ const MapScreen: React.FC = () => {
         )}
 
         <TouchableOpacity
-          style={[
-            styles.mapControlButton,
-            layersOpen && styles.mapControlButtonActive
-          ]}
+          style={[styles.mapControlButton]}
           onPress={() => setLayersOpen((v) => !v)}
         >
           <Ionicons
             name={layersOpen ? 'layers' : 'layers-outline'}
             size={20}
-            color={colors.text.primary}
+            color={layersOpen ? colors.accent.green : colors.text.primary}
           />
         </TouchableOpacity>
 
@@ -663,7 +841,7 @@ const MapScreen: React.FC = () => {
           style={styles.mapControlButton}
           onPress={goToUserLocation}
         >
-          <Ionicons name="locate" size={20} color={colors.accent.green} />
+          <Ionicons name="locate" size={20} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
 
@@ -818,6 +996,18 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     marginTop: 2
   },
+  resultHeader: {
+    fontSize: typography.fontSize.xxs,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.quaternary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border.subtle
+  },
   resultElevation: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
@@ -869,7 +1059,7 @@ const styles = StyleSheet.create({
   },
   loadingBadge: {
     position: 'absolute',
-    bottom: 132,
+    bottom: 20,
     left: spacing.base,
     flexDirection: 'row',
     alignItems: 'center',
@@ -885,10 +1075,13 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     color: colors.text.tertiary
   },
+  layersBackdrop: {
+    ...StyleSheet.absoluteFillObject
+  },
   mapControls: {
     position: 'absolute',
     right: spacing.base,
-    bottom: 132,
+    bottom: 20,
     alignItems: 'flex-end',
     gap: spacing.sm
   },
@@ -901,10 +1094,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#15181d',
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  mapControlButtonActive: {
-    borderColor: colors.accent.greenBorder,
-    backgroundColor: colors.accent.greenSoft
   },
   layersPanel: {
     borderRadius: borderRadius.md,

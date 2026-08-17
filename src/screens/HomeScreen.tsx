@@ -223,7 +223,7 @@ const HomeScreen: React.FC = () => {
           ) : logs.length > 0 ? (
             <View style={styles.logsGrid}>
               {logs.map((log) => (
-                <ClimbLogCard key={log.id} log={log} />
+                <ClimbLogCard key={log.id} log={log} showUser={false} />
               ))}
             </View>
           ) : (

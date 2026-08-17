@@ -7,6 +7,8 @@ import { API_CONFIG } from '../constants'
  */
 export default function getImageUrl(key: string): string {
   if (!key) return ''
+  // Absolute URLs (e.g. Wikimedia Commons) are used as-is.
+  if (/^https?:\/\//i.test(key)) return key
   return `${API_CONFIG.IMAGE_CDN}/${key}`
 }
 

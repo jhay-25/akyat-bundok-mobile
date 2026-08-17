@@ -18,17 +18,21 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 interface ClimbLogCardProps {
   log: ClimbLog
+  showUser?: boolean
 }
 
-export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({ log }) => {
+export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
+  log,
+  showUser = true
+}) => {
   const [showFullReport, setShowFullReport] = useState(false)
+  const [imagesExpanded, setImagesExpanded] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const { mountain, user, log_images, climb_report, climb_date } = log
   const hasImages = log_images.length > 0
   const hasClimbReport = Boolean(climb_report)
-  const firstImage = log_images[0]
 
   // Get countries from the mountain's countries array
   const countries = mountain.countries?.map((c) => c.country) || []
@@ -57,74 +61,108 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({ log }) => {
 
   return (
     <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.userInfo}>
-          <View style={styles.avatar}>
-            {user.image_path ? (
-              <Image
-                source={{ uri: getImageUrl(user.image_path) }}
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <Text style={styles.avatarText}>
-                {user.username.charAt(0).toUpperCase()}
+      {showUser && (
+        <View style={styles.cardHeader}>
+          <View style={styles.userInfo}>
+            <View style={styles.avatar}>
+              {user.image_path ? (
+                <Image
+                  source={{ uri: getImageUrl(user.image_path) }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {user.username.charAt(0).toUpperCase()}
+                </Text>
+              )}
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.displayName}>{displayName}</Text>
+              <Text
+                style={styles.metaLine}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {formattedDate}
               </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Image / elevation placeholder — matches the web LogCard */}
+      {hasImages ? (
+        <View style={styles.imageSection}>
+          <TouchableOpacity
+            style={styles.imageWrapper}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.95}
+          >
+            <Image
+              source={{ uri: getImageUrl(log_images[0].image_path) }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+            {/* Elevation badge (top-left) */}
+            <View style={styles.elevationBadge}>
+              <Text style={styles.elevationBadgeText}>
+                {mountain.elevation_m
+                  ? `${mountain.elevation_m.toLocaleString()}m`
+                  : '—'}
+              </Text>
+            </View>
+            {/* Photo count toggle (bottom-right) */}
+            {log_images.length > 1 && (
+              <TouchableOpacity
+                style={styles.imageCountButton}
+                onPress={() => setImagesExpanded((prev) => !prev)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.imageCountButtonText}>
+                  {imagesExpanded
+                    ? 'Collapse'
+                    : `+${log_images.length - 1} more`}
+                </Text>
+              </TouchableOpacity>
             )}
-          </View>
-          <View style={styles.userDetails}>
-            <Text style={styles.displayName}>{displayName}</Text>
-            <Text
-              style={styles.metaLine}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {countries.length > 0 && (
-                <>
-                  {countries.map((country, index) => (
-                    <React.Fragment key={country.id}>
-                      {index > 0 && ' · '}
-                      {country.name}
-                    </React.Fragment>
-                  ))}
-                  <Text style={styles.metaSeparator}> • </Text>
-                </>
-              )}
-              {formattedDate}
-            </Text>
-          </View>
+          </TouchableOpacity>
+          {/* Expanded images (inline, like the web) */}
+          {imagesExpanded &&
+            log_images.slice(1).map((image) => (
+              <View key={image.id} style={styles.expandedImageWrapper}>
+                <Image
+                  source={{ uri: getImageUrl(image.image_path) }}
+                  style={styles.expandedImage}
+                  resizeMode="cover"
+                />
+              </View>
+            ))}
         </View>
-      </View>
+      ) : (
+        <View style={styles.imagePlaceholder}>
+          <Text style={styles.placeholderElevation}>
+            {mountain.elevation_m ? mountain.elevation_m.toLocaleString() : '—'}
+          </Text>
+          <Text style={styles.placeholderLabel}>meters</Text>
+        </View>
+      )}
 
+      {/* Content */}
       <View style={styles.contentSection}>
-        <View style={styles.mountainHeader}>
-          <View style={styles.mountainInfo}>
-            <Text style={styles.mountainName} numberOfLines={2}>
-              {mountain.name}
-            </Text>
-          </View>
-        </View>
+        <Text style={styles.mountainName} numberOfLines={1}>
+          {mountain.name}
+        </Text>
 
-        {hasImages && (
-          <View style={styles.imageContainer}>
-            <TouchableOpacity
-              style={styles.imageWrapper}
-              onPress={() => setModalVisible(true)}
-              activeOpacity={0.95}
-            >
-              <Image
-                source={{ uri: getImageUrl(firstImage.image_path) }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-              {log_images.length > 1 && (
-                <View style={styles.imageCountOverlay}>
-                  <Text style={styles.imageCountText}>
-                    +{log_images.length - 1}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+        <Text style={styles.dateText}>{formattedDate}</Text>
+
+        {countries.length > 0 && (
+          <View style={styles.countriesRow}>
+            {countries.map((c) => (
+              <View key={c.id} style={styles.countryChip}>
+                <Text style={styles.countryChipText}>{c.name}</Text>
+              </View>
+            ))}
           </View>
         )}
 
@@ -137,7 +175,7 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({ log }) => {
                   style={styles.seeMoreText}
                   onPress={() => setShowFullReport(!showFullReport)}
                 >
-                  {showFullReport ? ' show less' : ' ...more'}
+                  {showFullReport ? ' less' : '...more'}
                 </Text>
               )}
             </Text>
@@ -246,76 +284,124 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: 0.3
   },
-  metaSeparator: {
-    color: colors.text.quaternary
-  },
   contentSection: {
-    padding: 16
-  },
-  mountainHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 16
-  },
-  mountainIcon: {
-    fontSize: 20,
-    marginTop: 2
-  },
-  mountainInfo: {
-    flex: 1
+    padding: 12
   },
   mountainName: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.text.primary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     textTransform: 'capitalize'
   },
-  imageContainer: {
-    marginBottom: 16
+  dateText: {
+    fontSize: 11,
+    color: colors.text.tertiary,
+    marginTop: 4
+  },
+  countriesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8
+  },
+  countryChip: {
+    backgroundColor: colors.background.pill,
+    borderWidth: 1,
+    borderColor: colors.border.pill,
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 2
+  },
+  countryChipText: {
+    fontSize: 10,
+    color: colors.text.secondary,
+    fontWeight: '500'
+  },
+  imageSection: {
+    position: 'relative'
   },
   imageWrapper: {
     width: '100%',
-    aspectRatio: 1,
+    aspectRatio: 4 / 3,
     backgroundColor: colors.background.card,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-    borderRadius: 12,
-    overflow: 'hidden',
     position: 'relative'
   },
   image: {
     width: '100%',
     height: '100%'
   },
-  imageCountOverlay: {
+  elevationBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: colors.overlay.image,
+    borderRadius: 9999,
+    paddingHorizontal: 10,
+    paddingVertical: 4
+  },
+  elevationBadgeText: {
+    color: colors.text.primary,
+    fontSize: 12,
+    fontWeight: '600'
+  },
+  imageCountButton: {
     position: 'absolute',
     bottom: 12,
     right: 12,
     backgroundColor: colors.overlay.icon,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16
+    borderRadius: 9999,
+    paddingHorizontal: 10,
+    paddingVertical: 4
   },
-  imageCountText: {
+  imageCountButtonText: {
     color: colors.text.primary,
-    fontSize: 13,
+    fontSize: 10,
     fontWeight: '600'
   },
+  expandedImageWrapper: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    backgroundColor: colors.background.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.subtle
+  },
+  expandedImage: {
+    width: '100%',
+    height: '100%'
+  },
+  imagePlaceholder: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    backgroundColor: '#1e2130',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  placeholderElevation: {
+    fontSize: 34,
+    fontWeight: '900',
+    color: colors.text.primary,
+    fontVariant: ['tabular-nums']
+  },
+  placeholderLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+    marginTop: 4
+  },
   reportContainer: {
-    paddingTop: 0
+    marginTop: 8
   },
   reportText: {
-    fontSize: 15,
+    fontSize: 13,
     color: colors.text.secondary,
-    lineHeight: 24,
-    letterSpacing: -0.1
+    lineHeight: 20
   },
   seeMoreText: {
     color: colors.accent.green,
-    fontWeight: '600',
-    fontSize: 14
+    fontWeight: '600'
   },
   modalContainer: {
     flex: 1,
