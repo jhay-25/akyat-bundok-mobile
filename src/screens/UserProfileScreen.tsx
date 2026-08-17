@@ -8,7 +8,9 @@ import {
   ImageBackground,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -168,6 +170,17 @@ const UserProfileScreen: React.FC = () => {
     }
   }, [user, loadingLogs, hasMore, logs.length, totalLogs])
 
+  // Infinite scroll: load more logs when scrolled near the bottom
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent
+    if (
+      contentSize.height - (layoutMeasurement.height + contentOffset.y) <
+      400
+    ) {
+      loadMoreLogs()
+    }
+  }
+
   const openLog = useCallback(
     (log: ClimbLog) => navigation.navigate('Log', { logId: log.id }),
     [navigation]
@@ -326,6 +339,8 @@ const UserProfileScreen: React.FC = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -387,14 +402,6 @@ const UserProfileScreen: React.FC = () => {
                 style={styles.loadMoreLoader}
                 color={colors.accent.green}
               />
-            )}
-            {hasMore && !loadingLogs && (
-              <TouchableOpacity
-                style={styles.loadMoreButton}
-                onPress={loadMoreLogs}
-              >
-                <Text style={styles.loadMoreText}>Load more</Text>
-              </TouchableOpacity>
             )}
           </View>
         ) : (
@@ -663,20 +670,6 @@ const styles = StyleSheet.create({
   },
   loadMoreLoader: {
     marginVertical: spacing.lg
-  },
-  loadMoreButton: {
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border.strong,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    marginBottom: spacing.sm
-  },
-  loadMoreText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.secondary
   },
   emptyState: {
     alignItems: 'center',

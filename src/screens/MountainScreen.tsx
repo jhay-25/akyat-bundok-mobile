@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
-  Alert
+  Alert,
+  NativeSyntheticEvent,
+  NativeScrollEvent
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
@@ -315,6 +317,29 @@ const MountainScreen: React.FC = () => {
     }
   }
 
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent
+    const distanceFromBottom =
+      contentSize.height - (layoutMeasurement.height + contentOffset.y)
+    if (distanceFromBottom > 400) return
+
+    if (activeTab === 'logs' && logs.length < logsCount && !logsLoadingMore) {
+      loadMoreLogs()
+    } else if (
+      activeTab === 'photos' &&
+      photos.length < photosCount &&
+      !photosLoadingMore
+    ) {
+      loadMorePhotos()
+    } else if (
+      activeTab === 'gpx' &&
+      gpxRoutes.length < gpxCount &&
+      !gpxLoadingMore
+    ) {
+      loadMoreGpx()
+    }
+  }
+
   const openLogClimb = () => {
     if (mountain) {
       navigation.navigate('LogClimb', {
@@ -357,6 +382,8 @@ const MountainScreen: React.FC = () => {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Banner */}
         <View style={styles.banner}>
@@ -539,10 +566,10 @@ const MountainScreen: React.FC = () => {
                       <LogRow key={log.id} log={log} stripe={idx % 2 === 0} />
                     ))}
                   </View>
-                  {logs.length < logsCount && (
-                    <LoadMoreButton
-                      loading={logsLoadingMore}
-                      onPress={loadMoreLogs}
+                  {logsLoadingMore && (
+                    <ActivityIndicator
+                      style={styles.loadMoreLoader}
+                      color={colors.accent.green}
                     />
                   )}
                 </>
@@ -582,10 +609,10 @@ const MountainScreen: React.FC = () => {
                       </TouchableOpacity>
                     ))}
                   </View>
-                  {photos.length < photosCount && (
-                    <LoadMoreButton
-                      loading={photosLoadingMore}
-                      onPress={loadMorePhotos}
+                  {photosLoadingMore && (
+                    <ActivityIndicator
+                      style={styles.loadMoreLoader}
+                      color={colors.accent.green}
                     />
                   )}
                 </>
@@ -618,10 +645,10 @@ const MountainScreen: React.FC = () => {
                       />
                     ))}
                   </View>
-                  {gpxRoutes.length < gpxCount && (
-                    <LoadMoreButton
-                      loading={gpxLoadingMore}
-                      onPress={loadMoreGpx}
+                  {gpxLoadingMore && (
+                    <ActivityIndicator
+                      style={styles.loadMoreLoader}
+                      color={colors.accent.green}
                     />
                   )}
                 </>
@@ -668,6 +695,7 @@ const InfoItem = ({ label, value }: { label: string; value: string }) => (
 )
 
 const LogRow = ({ log, stripe }: { log: ClimbLog; stripe?: boolean }) => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const date = log.climb_date
     ? new Date(log.climb_date).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -687,7 +715,11 @@ const LogRow = ({ log, stripe }: { log: ClimbLog; stripe?: boolean }) => {
   const img = log.log_images[0]
 
   return (
-    <View style={[styles.logRow, stripe && styles.rowStriped]}>
+    <TouchableOpacity
+      style={[styles.logRow, stripe && styles.rowStriped]}
+      activeOpacity={0.8}
+      onPress={() => navigation.navigate('Log', { logId: log.id })}
+    >
       {img ? (
         <Image
           source={{ uri: getImageUrl(img.image_path) }}
@@ -701,9 +733,18 @@ const LogRow = ({ log, stripe }: { log: ClimbLog; stripe?: boolean }) => {
       )}
       <View style={styles.logBody}>
         <View style={styles.logHeader}>
-          <Text style={styles.logName} numberOfLines={1}>
-            {displayName}
-          </Text>
+          <TouchableOpacity
+            style={styles.logNameTouch}
+            onPress={() =>
+              navigation.navigate('UserProfile', {
+                username: log.user.username
+              })
+            }
+          >
+            <Text style={styles.logName} numberOfLines={1}>
+              {displayName}
+            </Text>
+          </TouchableOpacity>
           {Boolean(date) && <Text style={styles.logDate}>{date}</Text>}
         </View>
         {excerpt ? (
@@ -714,33 +755,42 @@ const LogRow = ({ log, stripe }: { log: ClimbLog; stripe?: boolean }) => {
           <Text style={styles.logEmpty}>Climbed without a report</Text>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 
-const ClimberRow = ({ climber, rank }: { climber: Climber; rank: number }) => (
-  <View style={styles.climberRow}>
-    <Text style={styles.climberRank}>{rank}.</Text>
-    <View style={styles.climberAvatar}>
-      {climber.image_path ? (
-        <Image
-          source={{ uri: getImageUrl(climber.image_path) }}
-          style={styles.climberAvatarImg}
-        />
-      ) : (
-        <Text style={styles.climberAvatarText}>
-          {climber.given_name?.[0] || climber.username?.[0]}
-        </Text>
-      )}
-    </View>
-    <Text style={styles.climberName} numberOfLines={1}>
-      {climber.given_name || `@${climber.username}`}
-    </Text>
-    <Text style={styles.climberCount}>
-      {climber.climb_count} {climber.climb_count > 1 ? 'climbs' : 'climb'}
-    </Text>
-  </View>
-)
+const ClimberRow = ({ climber, rank }: { climber: Climber; rank: number }) => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  return (
+    <TouchableOpacity
+      style={styles.climberRow}
+      activeOpacity={0.8}
+      onPress={() =>
+        navigation.navigate('UserProfile', { username: climber.username })
+      }
+    >
+      <Text style={styles.climberRank}>{rank}.</Text>
+      <View style={styles.climberAvatar}>
+        {climber.image_path ? (
+          <Image
+            source={{ uri: getImageUrl(climber.image_path) }}
+            style={styles.climberAvatarImg}
+          />
+        ) : (
+          <Text style={styles.climberAvatarText}>
+            {climber.given_name?.[0] || climber.username?.[0]}
+          </Text>
+        )}
+      </View>
+      <Text style={styles.climberName} numberOfLines={1}>
+        {climber.given_name || `@${climber.username}`}
+      </Text>
+      <Text style={styles.climberCount}>
+        {climber.climb_count} {climber.climb_count > 1 ? 'climbs' : 'climb'}
+      </Text>
+    </TouchableOpacity>
+  )
+}
 
 const NearbyCard = ({
   mountain,
@@ -822,27 +872,6 @@ const GpxRow = ({
     </TouchableOpacity>
   )
 }
-
-const LoadMoreButton = ({
-  loading,
-  onPress
-}: {
-  loading: boolean
-  onPress: () => void
-}) => (
-  <TouchableOpacity
-    style={styles.loadMoreButton}
-    onPress={onPress}
-    disabled={loading}
-    activeOpacity={0.8}
-  >
-    {loading ? (
-      <ActivityIndicator size="small" color={colors.accent.green} />
-    ) : (
-      <Text style={styles.loadMoreText}>Load more</Text>
-    )}
-  </TouchableOpacity>
-)
 
 const styles = StyleSheet.create({
   container: {
@@ -1001,6 +1030,9 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary
+  },
+  logNameTouch: {
+    flex: 1
   },
   logDate: {
     fontSize: typography.fontSize.xxs,
@@ -1235,23 +1267,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  loadMoreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.background.elevated,
-    borderWidth: 1,
-    borderColor: colors.border.strong
-  },
-  loadMoreText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.secondary
+  loadMoreLoader: {
+    marginVertical: spacing.lg
   }
 })
 

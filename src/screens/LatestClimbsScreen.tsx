@@ -6,9 +6,11 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  Alert
+  Alert,
+  TouchableOpacity
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { ClimbLog } from '../types'
 import { API_CONFIG } from '../constants'
 import { colors } from '../theme/colors'
@@ -28,83 +30,82 @@ const LatestClimbsScreen: React.FC = () => {
   // stays stable (no stale-closure re-creation on every load).
   const logsRef = useRef<ClimbLog[]>([])
   const hasFocusedRef = useRef(false)
+  const listRef = useRef<FlatList<ClimbLog>>(null)
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
-  const fetchLogs = useCallback(
-    async (pageNum: number, isRefresh = false) => {
-      try {
-        if (isRefresh) {
-          setRefreshing(true)
-        } else if (pageNum === 1) {
-          setLoading(true)
-        } else {
-          setLoadingMore(true)
-        }
-
-        const url = `${
-          API_CONFIG.BASE_URL
-        }/api/public/logs/latest?page=${pageNum}${
-          pageNum === 1 ? '&count=true' : ''
-        }`
-
-        const response = await fetch(url)
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(
-            `Failed to fetch logs: ${response.status} ${response.statusText}`
-          )
-        }
-
-        const data = await response.json()
-
-        const newLogs = (data.logs || []) as ClimbLog[]
-
-        if (!Array.isArray(newLogs)) {
-          throw new Error('Invalid response format: logs is not an array')
-        }
-
-        if (pageNum === 1) {
-          logsRef.current = newLogs
-          setLogs(newLogs)
-          if (data.count !== undefined) {
-            setTotalLogs(data.count)
-          }
-        } else {
-          logsRef.current = [...logsRef.current, ...newLogs]
-          setLogs(logsRef.current)
-        }
-
-        setHasMore(
-          newLogs.length > 0 &&
-            (data.count ? logsRef.current.length < data.count : true)
-        )
-        setError(null)
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'An error occurred'
-        setError(errorMessage)
-        Alert.alert(
-          'Error Loading Climbs',
-          `${errorMessage}\n\nPlease check your internet connection and try again.`,
-          [
-            {
-              text: 'Retry',
-              onPress: () => fetchLogs(pageNum, isRefresh)
-            },
-            {
-              text: 'Cancel',
-              style: 'cancel'
-            }
-          ]
-        )
-      } finally {
-        setLoading(false)
-        setRefreshing(false)
-        setLoadingMore(false)
+  const fetchLogs = useCallback(async (pageNum: number, isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true)
+      } else if (pageNum === 1) {
+        setLoading(true)
+      } else {
+        setLoadingMore(true)
       }
-    },
-    []
-  )
+
+      const url = `${
+        API_CONFIG.BASE_URL
+      }/api/public/logs/latest?page=${pageNum}${
+        pageNum === 1 ? '&count=true' : ''
+      }`
+
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(
+          `Failed to fetch logs: ${response.status} ${response.statusText}`
+        )
+      }
+
+      const data = await response.json()
+
+      const newLogs = (data.logs || []) as ClimbLog[]
+
+      if (!Array.isArray(newLogs)) {
+        throw new Error('Invalid response format: logs is not an array')
+      }
+
+      if (pageNum === 1) {
+        logsRef.current = newLogs
+        setLogs(newLogs)
+        if (data.count !== undefined) {
+          setTotalLogs(data.count)
+        }
+      } else {
+        logsRef.current = [...logsRef.current, ...newLogs]
+        setLogs(logsRef.current)
+      }
+
+      setHasMore(
+        newLogs.length > 0 &&
+          (data.count ? logsRef.current.length < data.count : true)
+      )
+      setError(null)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      Alert.alert(
+        'Error Loading Climbs',
+        `${errorMessage}\n\nPlease check your internet connection and try again.`,
+        [
+          {
+            text: 'Retry',
+            onPress: () => fetchLogs(pageNum, isRefresh)
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          }
+        ]
+      )
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+      setLoadingMore(false)
+    }
+  }, [])
 
   // Refetch the feed whenever the screen regains focus (e.g., after deleting
   // a climb from the log detail screen). The first focus does the full
@@ -186,6 +187,7 @@ const LatestClimbsScreen: React.FC = () => {
       )}
 
       <FlatList
+        ref={listRef}
         data={logs}
         renderItem={renderLogCard}
         keyExtractor={(item) => item.id}
@@ -196,10 +198,27 @@ const LatestClimbsScreen: React.FC = () => {
         onRefresh={handleRefresh}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        onScroll={(event) =>
+          setShowBackToTop(event.nativeEvent.contentOffset.y > 400)
+        }
+        scrollEventThrottle={16}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyComponent}
         showsVerticalScrollIndicator={false}
       />
+
+      {/* Back to top */}
+      {showBackToTop && (
+        <TouchableOpacity
+          style={styles.backToTop}
+          activeOpacity={0.8}
+          onPress={() =>
+            listRef.current?.scrollToOffset({ offset: 0, animated: true })
+          }
+        >
+          <Ionicons name="arrow-up" size={20} color={colors.text.primary} />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   )
 }
@@ -292,6 +311,24 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     textAlign: 'center',
     lineHeight: 24
+  },
+  backToTop: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.border.strong,
+    backgroundColor: '#15181d',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4
   },
   footerLoader: {
     paddingVertical: 24,

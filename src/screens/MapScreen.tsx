@@ -526,6 +526,7 @@ const MapScreen: React.FC = () => {
         style={styles.map}
         initialRegion={INITIAL_REGION}
         onRegionChangeComplete={onRegionChangeComplete}
+        onPress={() => setSelected(null)}
         showsUserLocation={false}
         showsPointsOfInterest={false}
         mapType={nativeMapType}
@@ -796,59 +797,61 @@ const MapScreen: React.FC = () => {
         />
       )}
 
-      {/* Map controls */}
-      <View style={styles.mapControls}>
-        {layersOpen && (
-          <View style={styles.layersPanel}>
-            {MAP_STYLE_OPTIONS.map((option) => {
-              const isActive = mapStyle === option.key
-              return (
-                <TouchableOpacity
-                  key={option.key}
-                  style={[
-                    styles.layerOption,
-                    isActive && styles.layerOptionActive
-                  ]}
-                  onPress={() => {
-                    setMapStyle(option.key)
-                    setLayersOpen(false)
-                  }}
-                >
-                  <Text
+      {/* Map controls — hidden while a mountain is selected */}
+      {!selected && (
+        <View style={styles.mapControls}>
+          {layersOpen && (
+            <View style={styles.layersPanel}>
+              {MAP_STYLE_OPTIONS.map((option) => {
+                const isActive = mapStyle === option.key
+                return (
+                  <TouchableOpacity
+                    key={option.key}
                     style={[
-                      styles.layerOptionText,
-                      isActive && styles.layerOptionTextActive
+                      styles.layerOption,
+                      isActive && styles.layerOptionActive
                     ]}
+                    onPress={() => {
+                      setMapStyle(option.key)
+                      setLayersOpen(false)
+                    }}
                   >
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              )
-            })}
-          </View>
-        )}
+                    <Text
+                      style={[
+                        styles.layerOptionText,
+                        isActive && styles.layerOptionTextActive
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          )}
 
-        <TouchableOpacity
-          style={[styles.mapControlButton]}
-          onPress={() => setLayersOpen((v) => !v)}
-        >
-          <Ionicons
-            name={layersOpen ? 'layers' : 'layers-outline'}
-            size={20}
-            color={layersOpen ? colors.accent.green : colors.text.primary}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.mapControlButton]}
+            onPress={() => setLayersOpen((v) => !v)}
+          >
+            <Ionicons
+              name={layersOpen ? 'layers' : 'layers-outline'}
+              size={20}
+              color={layersOpen ? colors.accent.green : colors.text.primary}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.mapControlButton}
-          onPress={goToUserLocation}
-        >
-          <Ionicons name="locate" size={20} color={colors.text.primary} />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.mapControlButton}
+            onPress={goToUserLocation}
+          >
+            <Ionicons name="locate" size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Loading badge */}
-      {loadingMarkers && (
+      {loadingMarkers && !selected && (
         <View style={styles.loadingBadge} pointerEvents="none">
           <ActivityIndicator size="small" color={colors.text.tertiary} />
           <Text style={styles.loadingBadgeText}>
