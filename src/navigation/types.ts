@@ -23,6 +23,7 @@ export type AuthStackNavigationProp<T extends keyof AuthStackParamList> =
 export type MainTabParamList = {
   Map: undefined
   Latest: undefined
+  LogClimbSearch: undefined
   WorldPeaks: undefined
   Home?: undefined
   Account?: undefined
@@ -51,6 +52,7 @@ export type RootStackParamList = {
   GpxRoute: { routeId: string }
   Log: { logId: string }
   UserProfile: { username: string }
+  MountainPicker: { pickMode?: boolean } | undefined
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> =

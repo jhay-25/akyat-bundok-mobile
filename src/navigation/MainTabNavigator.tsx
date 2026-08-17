@@ -1,4 +1,5 @@
 import React from 'react'
+import { View, TouchableOpacity, StyleSheet } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -6,12 +7,30 @@ import LatestClimbsScreen from '../screens/LatestClimbsScreen'
 import HomeScreen from '../screens/HomeScreen'
 import WorldPeaksScreen from '../screens/WorldPeaksScreen'
 import MapScreen from '../screens/MapScreen'
+import MountainSearchScreen from '../screens/MountainSearchScreen'
 import { AuthNavigator } from './AuthNavigator'
 import { MainTabParamList } from './types'
 import { useAuth } from '../contexts/AuthContext'
 import { colors } from '../theme/colors'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
+
+/**
+ * Prominent center "Log a climb" button — raised above the tab bar so it
+ * stands out as the app's primary action.
+ */
+const CenterLogButton = ({ onPress, accessibilityState }: any) => (
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={0.9}
+    style={styles.centerWrap}
+    accessibilityState={accessibilityState}
+  >
+    <View style={styles.centerButton}>
+      <Ionicons name="add" size={30} color={colors.black} />
+    </View>
+  </TouchableOpacity>
+)
 
 /**
  * Main Tab Navigator
@@ -85,6 +104,15 @@ export const MainTabNavigator: React.FC = () => {
       />
 
       <Tab.Screen
+        name="LogClimbSearch"
+        component={MountainSearchScreen}
+        options={{
+          tabBarLabel: 'Log',
+          tabBarButton: (props) => <CenterLogButton {...props} />
+        }}
+      />
+
+      <Tab.Screen
         name="WorldPeaks"
         component={WorldPeaksScreen}
         options={{ tabBarLabel: 'World Peaks' }}
@@ -106,3 +134,28 @@ export const MainTabNavigator: React.FC = () => {
     </Tab.Navigator>
   )
 }
+
+const styles = StyleSheet.create({
+  centerWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: -16,
+    height: 64
+  },
+  centerButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.accent.green,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.background.primary,
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6
+  }
+})

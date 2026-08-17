@@ -12,7 +12,7 @@ import {
   Image,
   Platform
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import MapView, { Marker, Region, UrlTile } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location'
@@ -22,7 +22,7 @@ import { colors } from '../theme/colors'
 import { spacing, typography, borderRadius } from '../theme'
 import getImageUrl from '../utils/getImageUrl'
 import { MountainIcon } from '../components/MountainIcon'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from '../navigation/types'
 
@@ -60,6 +60,9 @@ const INITIAL_REGION: Region = {
   latitudeDelta: 16,
   longitudeDelta: 16
 }
+
+// Height of the pick-mode header row (below the safe-area inset).
+const PICK_HEADER_HEIGHT = 56
 
 // Google Maps dark style (used on Android)
 const DARK_MAP_STYLE: any[] = [
@@ -241,6 +244,11 @@ const MapScreen: React.FC = () => {
   const [layersOpen, setLayersOpen] = useState(false)
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const insets = useSafeAreaInsets()
+  const route = useRoute()
+  const pickMode = !!(
+    route.params as { pickMode?: boolean } | undefined
+  )?.pickMode
 
   const nativeMapType = resolveNativeMapType(mapStyle)
   const tileUrl = resolveTileUrl(mapStyle)
@@ -296,36 +304,43 @@ const MapScreen: React.FC = () => {
     }
   }, [])
 
-  const runSearch = useCallback(async (query: string) => {
-    const q = query.trim()
-    if (q.length < 3) {
-      setSearchSections([])
-      setIsSearching(false)
-      return
-    }
-    setIsSearching(true)
-    try {
-      const [mountainsRes, placesRes] = await Promise.all([
-        fetch(
-          `${API_CONFIG.BASE_URL}/api/public/mountains/search?query=${encodeURIComponent(q)}`
-        ),
-        fetch(
+  const runSearch = useCallback(
+    async (query: string) => {
+      const q = query.trim()
+      if (q.length < 3) {
+        setSearchSections([])
+        setIsSearching(false)
+        return
+      }
+      setIsSearching(true)
+      try {
+        // In pick mode the input only jumps to a place (geocoding) — no
+        // mountain search; peaks are picked straight from the map markers.
+        const placesRes = await fetch(
           `${API_CONFIG.BASE_URL}/api/public/geocode/search?q=${encodeURIComponent(q)}&limit=5`
         )
-      ])
-      const mountains: MountainMarker[] = mountainsRes.ok
-        ? (await mountainsRes.json()).results || []
-        : []
-      const places: GeocodePlace[] = placesRes.ok
-        ? (await placesRes.json()).results || []
-        : []
-      setSearchSections(buildSearchSections(mountains, places))
-    } catch (_) {
-      setSearchSections([])
-    } finally {
-      setIsSearching(false)
-    }
-  }, [])
+        const places: GeocodePlace[] = placesRes.ok
+          ? (await placesRes.json()).results || []
+          : []
+        if (pickMode) {
+          setSearchSections(buildSearchSections([], places))
+        } else {
+          const mountainsRes = await fetch(
+            `${API_CONFIG.BASE_URL}/api/public/mountains/search?query=${encodeURIComponent(q)}`
+          )
+          const mountains: MountainMarker[] = mountainsRes.ok
+            ? (await mountainsRes.json()).results || []
+            : []
+          setSearchSections(buildSearchSections(mountains, places))
+        }
+      } catch (_) {
+        setSearchSections([])
+      } finally {
+        setIsSearching(false)
+      }
+    },
+    [pickMode]
+  )
 
   // Debounced live search as the user types
   useEffect(() => {
@@ -521,6 +536,29 @@ const MapScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Pick-mode header */}
+      {pickMode && (
+        <View
+          style={[styles.pickHeader, { paddingTop: insets.top + spacing.sm }]}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.pickBack}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={colors.text.primary}
+            />
+          </TouchableOpacity>
+          <Text style={styles.pickTitle} numberOfLines={1}>
+            Pick a mountain
+          </Text>
+          <View style={styles.pickBack} />
+        </View>
+      )}
+
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -647,8 +685,11 @@ const MapScreen: React.FC = () => {
 
       {/* Search bar + results overlay */}
       <SafeAreaView
-        edges={['top']}
-        style={styles.searchSafeArea}
+        edges={pickMode ? [] : ['top']}
+        style={[
+          styles.searchSafeArea,
+          pickMode && { top: insets.top + PICK_HEADER_HEIGHT }
+        ]}
         pointerEvents="box-none"
       >
         <View style={styles.searchBar}>
@@ -657,7 +698,11 @@ const MapScreen: React.FC = () => {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search for a peak or place..."
+            placeholder={
+              pickMode
+                ? 'Jump to a place...'
+                : 'Search for a peak or place...'
+            }
             placeholderTextColor={colors.text.tertiary}
             autoCapitalize="none"
             autoCorrect={false}
@@ -683,7 +728,9 @@ const MapScreen: React.FC = () => {
         {isSearching ? (
           <View style={styles.resultsPanel}>
             <ActivityIndicator size="small" color={colors.accent.green} />
-            <Text style={styles.resultsHint}>Searching peaks & places...</Text>
+            <Text style={styles.resultsHint}>
+              {pickMode ? 'Searching places...' : 'Searching peaks & places...'}
+            </Text>
           </View>
         ) : searchQuery.trim().length > 0 && searchQuery.trim().length < 3 ? (
           <View style={styles.resultsPanel}>
@@ -784,7 +831,9 @@ const MapScreen: React.FC = () => {
           />
         ) : searchQuery.trim().length >= 3 ? (
           <View style={styles.resultsPanel}>
-            <Text style={styles.resultsHint}>No peaks or places found</Text>
+            <Text style={styles.resultsHint}>
+              {pickMode ? 'No places found' : 'No peaks or places found'}
+            </Text>
           </View>
         ) : null}
       </SafeAreaView>
@@ -877,7 +926,14 @@ const MapScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.selectedMain}
             activeOpacity={0.8}
-            onPress={() => openMountain(selected)}
+            onPress={() =>
+              pickMode
+                ? navigation.navigate('LogClimb', {
+                    mountainId: selected.id,
+                    mountainName: selected.name
+                  })
+                : openMountain(selected)
+            }
           >
             {selected.banner_path ? (
               <Image
@@ -937,6 +993,31 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: spacing.base
+  },
+  pickHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.sm,
+    backgroundColor: 'rgba(21, 23, 32, 0.92)'
+  },
+  pickBack: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  pickTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary
   },
   searchBar: {
     flexDirection: 'row',
