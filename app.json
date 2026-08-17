@@ -19,6 +19,7 @@
       }
     },
     "android": {
+      "package": "com.akyatbundok.app",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
@@ -29,6 +30,11 @@
     },
     "plugins": [
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1e9dcac6-679c-4ca7-80bb-58501c21b6c9"
+      }
+    }
   }
 }
