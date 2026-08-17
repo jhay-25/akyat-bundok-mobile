@@ -228,6 +228,7 @@ const MapScreen: React.FC = () => {
   const [region, setRegion] = useState<Region>(INITIAL_REGION)
   const [markers, setMarkers] = useState<MountainMarker[]>([])
   const [loadingMarkers, setLoadingMarkers] = useState(false)
+  const [hasFetched, setHasFetched] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchSections, setSearchSections] = useState<SearchSection[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -291,6 +292,7 @@ const MapScreen: React.FC = () => {
       // Ignore network errors — markers simply won't update
     } finally {
       setLoadingMarkers(false)
+      setHasFetched(true)
     }
   }, [])
 
@@ -855,6 +857,17 @@ const MapScreen: React.FC = () => {
         </View>
       )}
 
+      {/* No peaks in view — same message as the web app */}
+      {hasFetched && !loadingMarkers && markers.length === 0 && (
+        <View style={styles.emptyState} pointerEvents="none">
+          <View style={styles.emptyStateCard}>
+            <MountainIcon size={28} color="rgba(255, 255, 255, 0.12)" />
+            <Text style={styles.emptyStateTitle}>No peaks in view</Text>
+            <Text style={styles.emptyStateBody}>Move the map to explore.</Text>
+          </View>
+        </View>
+      )}
+
       {/* Selected mountain card */}
       {selected && (
         <View style={styles.selectedCard}>
@@ -1074,6 +1087,32 @@ const styles = StyleSheet.create({
   loadingBadgeText: {
     fontSize: typography.fontSize.xs,
     color: colors.text.tertiary
+  },
+  emptyState: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyStateCard: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.base,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.strong,
+    backgroundColor: 'rgba(26, 29, 36, 0.95)',
+    maxWidth: 260
+  },
+  emptyStateTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.secondary,
+    marginTop: spacing.sm
+  },
+  emptyStateBody: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
+    marginTop: 2
   },
   layersBackdrop: {
     ...StyleSheet.absoluteFillObject
