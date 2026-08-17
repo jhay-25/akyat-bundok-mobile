@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -14,7 +14,12 @@ import {
   Alert
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  RouteProp
+} from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { Ionicons } from '@expo/vector-icons'
 import { RootStackParamList } from '../navigation/types'
@@ -80,26 +85,32 @@ const LogDetailScreen: React.FC = () => {
   const [seeMore, setSeeMore] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
 
+  const fetchLog = useCallback(async () => {
+    const { data, error: queryError } = await supabase
+      .from('logs')
+      .select(
+        `*,
+        mountain: mountain_id(*, countries: mountain_country(country: countries(*)), mountain_images(image_path)),
+        log_images(*),
+        log_routes(gpx_path, is_uploaded),
+        user: user_id(*)
+        `
+      )
+      .eq('id', logId)
+      .single()
+    if (queryError) throw new Error(queryError.message)
+    if (!data) throw new Error('Climb not found')
+    return data as unknown as LogDetail
+  }, [logId])
+
   useEffect(() => {
     let active = true
+    setLoading(true)
+    setError('')
     ;(async () => {
       try {
-        const { data, error: queryError } = await supabase
-          .from('logs')
-          .select(
-            `*,
-            mountain: mountain_id(*, countries: mountain_country(country: countries(*)), mountain_images(image_path)),
-            log_images(*),
-            log_routes(gpx_path, is_uploaded),
-            user: user_id(*)
-            `
-          )
-          .eq('id', logId)
-          .single()
-        if (!active) return
-        if (queryError) throw new Error(queryError.message)
-        if (!data) throw new Error('Climb not found')
-        setLog(data as unknown as LogDetail)
+        const data = await fetchLog()
+        if (active) setLog(data)
       } catch (e) {
         if (active) {
           setError(e instanceof Error ? e.message : 'Something went wrong')
@@ -111,7 +122,30 @@ const LogDetailScreen: React.FC = () => {
     return () => {
       active = false
     }
-  }, [logId])
+  }, [fetchLog])
+
+  const hasFocusedRef = useRef(false)
+  // Refetch silently when returning from editing so the log reflects changes.
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasFocusedRef.current) {
+        hasFocusedRef.current = true
+        return
+      }
+      let active = true
+      ;(async () => {
+        try {
+          const data = await fetchLog()
+          if (active) setLog(data)
+        } catch (_) {
+          // Keep showing the existing data on a failed refresh
+        }
+      })()
+      return () => {
+        active = false
+      }
+    }, [fetchLog])
+  )
 
   const handleShare = useCallback(async () => {
     if (!log) return
@@ -133,47 +167,41 @@ const LogDetailScreen: React.FC = () => {
     }
   }, [log])
 
-  // Navigate to the signed-in user's profile (Account tab). Only the owner
-  // can delete, so this always targets the correct profile.
   const goToProfile = useCallback(() => {
     navigation.navigate('MainTabs', { screen: 'Home' })
   }, [navigation])
 
   const handleDelete = useCallback(() => {
     if (!log || !session) return
-    Alert.alert(
-      'Delete this climb?',
-      'This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true)
-            try {
-              const res = await fetch(
-                `${API_CONFIG.BASE_URL}/api/logs/${log.id}`,
-                {
-                  method: 'DELETE',
-                  headers: {
-                    Authorization: `Bearer ${session.access_token}`
-                  }
+    Alert.alert('Delete this climb?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setDeleting(true)
+          try {
+            const res = await fetch(
+              `${API_CONFIG.BASE_URL}/api/logs/${log.id}`,
+              {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`
                 }
-              )
-              if (!res.ok) throw new Error('Failed to delete climb')
-              goToProfile()
-            } catch (e) {
-              setDeleting(false)
-              Alert.alert(
-                'Delete failed',
-                e instanceof Error ? e.message : 'Something went wrong'
-              )
-            }
+              }
+            )
+            if (!res.ok) throw new Error('Failed to delete climb')
+            goToProfile()
+          } catch (e) {
+            setDeleting(false)
+            Alert.alert(
+              'Delete failed',
+              e instanceof Error ? e.message : 'Something went wrong'
+            )
           }
         }
-      ]
-    )
+      }
+    ])
   }, [log, session, goToProfile])
 
   if (loading) {
@@ -219,7 +247,8 @@ const LogDetailScreen: React.FC = () => {
         year: 'numeric'
       })
     : null
-  const hasImages = log_images.length > 0
+  const uploadedImages = log_images.filter((img) => img.is_uploaded === 'true')
+  const hasImages = uploadedImages.length > 0
   const shouldTruncate = (climb_report?.length ?? 0) > REPORT_TRUNCATE
   const displayReport =
     shouldTruncate && !seeMore
@@ -245,22 +274,33 @@ const LogDetailScreen: React.FC = () => {
         </Text>
         <View style={styles.headerActions}>
           {isOwner && (
-            <TouchableOpacity
-              onPress={handleDelete}
-              style={styles.headerButton}
-              disabled={deleting}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              {deleting ? (
-                <ActivityIndicator size="small" color={colors.error.text} />
-              ) : (
-                <Ionicons
-                  name="trash-outline"
-                  size={20}
-                  color={colors.error.text}
-                />
-              )}
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('LogUpdate', { logId: log.id })
+                }
+                style={styles.headerButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="pencil" size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDelete}
+                style={styles.headerButton}
+                disabled={deleting}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color={colors.error.text} />
+                ) : (
+                  <Ionicons
+                    name="trash-outline"
+                    size={20}
+                    color={colors.error.text}
+                  />
+                )}
+              </TouchableOpacity>
+            </>
           )}
           <TouchableOpacity
             onPress={handleShare}
@@ -392,7 +432,7 @@ const LogDetailScreen: React.FC = () => {
         <Text style={styles.sectionLabel}>Images</Text>
         {hasImages ? (
           <View style={styles.photoGrid}>
-            {log_images.map((image, idx) => (
+            {uploadedImages.map((image, idx) => (
               <TouchableOpacity
                 key={image.id}
                 style={styles.photoTile}
@@ -432,7 +472,7 @@ const LogDetailScreen: React.FC = () => {
         <View style={styles.lightboxContainer}>
           <View style={styles.lightboxHeader}>
             <Text style={styles.lightboxCounter}>
-              {(viewerIndex ?? 0) + 1} / {log_images.length}
+              {(viewerIndex ?? 0) + 1} / {uploadedImages.length}
             </Text>
             <TouchableOpacity
               onPress={() => setViewerIndex(null)}
@@ -457,11 +497,11 @@ const LogDetailScreen: React.FC = () => {
                 event.nativeEvent.contentOffset.x / SCREEN_WIDTH
               )
               setViewerIndex(
-                Math.max(0, Math.min(index, log_images.length - 1))
+                Math.max(0, Math.min(index, uploadedImages.length - 1))
               )
             }}
           >
-            {log_images.map((image) => (
+            {uploadedImages.map((image) => (
               <View
                 key={image.id}
                 style={[styles.lightboxSlide, { width: SCREEN_WIDTH }]}

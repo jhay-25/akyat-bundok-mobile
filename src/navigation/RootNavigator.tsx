@@ -56,6 +56,7 @@ export const RootNavigator: React.FC = () => {
         )}
         <Stack.Screen name="Mountain" component={MountainScreen} />
         <Stack.Screen name="LogClimb" component={LogClimbScreen} />
+        <Stack.Screen name="LogUpdate" component={LogClimbScreen} />
         <Stack.Screen name="GpxRoute" component={GpxRouteScreen} />
         <Stack.Screen name="Log" component={LogDetailScreen} />
       </Stack.Navigator>

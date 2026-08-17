@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -24,10 +24,26 @@ import { RootStackParamList } from '../navigation/types'
 import { API_CONFIG } from '../constants'
 import { colors } from '../theme/colors'
 import { spacing, typography, borderRadius } from '../theme'
+import getImageUrl from '../utils/getImageUrl'
+import { supabase } from '../utils/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
-type LogClimbRoute = RouteProp<RootStackParamList, 'LogClimb'>
-type LogClimbNav = StackNavigationProp<RootStackParamList, 'LogClimb'>
+type LogClimbRoute = RouteProp<RootStackParamList, 'LogClimb' | 'LogUpdate'>
+type LogClimbNav = StackNavigationProp<
+  RootStackParamList,
+  'LogClimb' | 'LogUpdate'
+>
+
+interface ExistingLogImage {
+  id: string
+  image_path: string
+}
+
+interface LogClimbParams {
+  mountainId?: string
+  mountainName?: string
+  logId?: string
+}
 
 const MAX_IMAGES = 5
 
@@ -42,22 +58,155 @@ const LogClimbScreen: React.FC = () => {
   const insets = useSafeAreaInsets()
   const route = useRoute<LogClimbRoute>()
   const navigation = useNavigation<LogClimbNav>()
-  const { mountainId, mountainName } = route.params
+  const params = route.params as LogClimbParams
+  const { mountainId, mountainName, logId } = params
+  const isEdit = !!logId
   const { session, user } = useAuth()
 
+  const [logMountainId, setLogMountainId] = useState(mountainId || '')
+  const [mountainNameDisplay, setMountainNameDisplay] = useState(
+    mountainName || ''
+  )
   const [dateRemembered, setDateRemembered] = useState(false)
   const [climbDate, setClimbDate] = useState<Date>(new Date())
   const [showPicker, setShowPicker] = useState(false)
   const [report, setReport] = useState('')
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([])
+  const [existingImages, setExistingImages] = useState<ExistingLogImage[]>([])
   const [gpx, setGpx] = useState<DocumentPicker.DocumentPickerAsset | null>(
     null
   )
+  const [hasExistingGpx, setHasExistingGpx] = useState(false)
+  const [existingGpxPath, setExistingGpxPath] = useState<string | null>(null)
+  const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
 
   const toggleDate = (value: boolean) => {
     setDateRemembered(value)
     if (value) setClimbDate(new Date())
+  }
+
+  // Edit mode — prefill the form from the existing log
+  useEffect(() => {
+    if (!isEdit || !logId) return
+    let active = true
+    ;(async () => {
+      try {
+        const { data, error: queryError } = await supabase
+          .from('logs')
+          .select(
+            `*,
+            mountain: mountain_id(name),
+            log_images(*),
+            log_routes(gpx_path, is_uploaded)
+            `
+          )
+          .eq('id', logId)
+          .single()
+        if (!active) return
+        if (queryError || !data) {
+          Alert.alert(
+            'Failed to load climb',
+            queryError?.message || 'Climb not found'
+          )
+          return
+        }
+        setLogMountainId(data.mountain_id)
+        setMountainNameDisplay(data.mountain?.name || '')
+        setReport(data.climb_report || '')
+        if (data.climb_date) {
+          setDateRemembered(true)
+          setClimbDate(new Date(data.climb_date))
+        }
+        setExistingImages(
+          ((data.log_images || []) as any[]).filter(
+            (img) => img.is_uploaded != null
+          )
+        )
+        const route = ((data.log_routes || []) as any[]).find(
+          (r) => r.is_uploaded
+        )
+        setHasExistingGpx(!!route)
+        setExistingGpxPath(route?.gpx_path ?? null)
+      } catch (e) {
+        if (active) {
+          Alert.alert(
+            'Failed to load climb',
+            e instanceof Error ? e.message : 'Something went wrong'
+          )
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [isEdit, logId])
+
+  const removeExistingImage = async (image: ExistingLogImage) => {
+    if (!session) return
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert('Delete this photo?', 'This cannot be undone.', [
+        { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => resolve(true)
+        }
+      ])
+    })
+    if (!confirmed) return
+    try {
+      const res = await fetch(
+        `${API_CONFIG.BASE_URL}/api/logs/image/${image.image_path}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        }
+      )
+      if (!res.ok) throw new Error('Failed to delete photo')
+      setExistingImages((prev) => prev.filter((i) => i.id !== image.id))
+    } catch (e) {
+      Alert.alert(
+        'Delete failed',
+        e instanceof Error ? e.message : 'Something went wrong'
+      )
+    }
+  }
+
+  const removeExistingGpx = () => {
+    if (!session || !existingGpxPath) return
+    Alert.alert('Delete this GPX route?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const res = await fetch(
+              `${API_CONFIG.BASE_URL}/api/logs/gpx/${existingGpxPath}`,
+              {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`
+                }
+              }
+            )
+            if (!res.ok) throw new Error('Failed to delete GPX route')
+            setHasExistingGpx(false)
+            setExistingGpxPath(null)
+          } catch (e) {
+            Alert.alert(
+              'Delete failed',
+              e instanceof Error ? e.message : 'Something went wrong'
+            )
+          }
+        }
+      }
+    ])
   }
 
   const pickImages = async () => {
@@ -76,7 +225,7 @@ const LogClimbScreen: React.FC = () => {
     if (!result.canceled) {
       setImages((prev) => {
         const combined = [...prev, ...result.assets]
-        if (combined.length > MAX_IMAGES) {
+        if (existingImages.length + combined.length > MAX_IMAGES) {
           Alert.alert('Limit', `You can add up to ${MAX_IMAGES} photos.`)
           return prev
         }
@@ -121,6 +270,7 @@ const LogClimbScreen: React.FC = () => {
       Alert.alert('Sign in required', 'You need to be signed in to log climbs.')
       return
     }
+    if (isEdit && !logId) return
 
     setSaving(true)
     try {
@@ -135,33 +285,40 @@ const LogClimbScreen: React.FC = () => {
           ).toISOString()
         : null
 
-      const res = await fetch(`${API_CONFIG.BASE_URL}/api/logs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          mountain_id: mountainId,
-          climb_report: report.trim() || null,
-          climb_date: climbDateIso,
-          images:
-            images.length > 0
-              ? images.map((img) => ({
-                  url: img.uri,
-                  contentType: img.mimeType || 'image/jpeg',
-                  contentLength: img.fileSize || 0
-                }))
-              : null,
-          gpx: gpx
-            ? {
-                fileName: gpx.name || 'route.gpx',
-                contentType: gpx.mimeType || 'application/gpx+xml',
-                contentLength: gpx.size || 0
-              }
-            : null
-        })
-      })
+      const body = {
+        mountain_id: logMountainId,
+        climb_report: report.trim() || null,
+        climb_date: climbDateIso,
+        images:
+          images.length > 0
+            ? images.map((img) => ({
+                url: img.uri,
+                contentType: img.mimeType || 'image/jpeg',
+                contentLength: img.fileSize || 0
+              }))
+            : null,
+        gpx: gpx
+          ? {
+              fileName: gpx.name || 'route.gpx',
+              contentType: gpx.mimeType || 'application/gpx+xml',
+              contentLength: gpx.size || 0
+            }
+          : null
+      }
+
+      const res = await fetch(
+        isEdit
+          ? `${API_CONFIG.BASE_URL}/api/logs/${logId}`
+          : `${API_CONFIG.BASE_URL}/api/logs`,
+        {
+          method: isEdit ? 'PATCH' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(body)
+        }
+      )
 
       if (!res.ok) {
         Alert.alert('Failed', await res.text())
@@ -169,7 +326,7 @@ const LogClimbScreen: React.FC = () => {
       }
 
       const data = await res.json()
-      const logId = data.log?.id || data.id
+      const savedLogId = data.log?.id || data.id || logId
 
       // Upload GPX file, then mark it as uploaded
       if (gpx && data.gpxSignedUrl) {
@@ -185,7 +342,7 @@ const LogClimbScreen: React.FC = () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ log_id: logId, key: data.gpxKey })
+          body: JSON.stringify({ log_id: savedLogId, key: data.gpxKey })
         })
       }
 
@@ -201,20 +358,20 @@ const LogClimbScreen: React.FC = () => {
             )
           )
         )
-        await fetch(`${API_CONFIG.BASE_URL}/api/logs/image/${logId}`, {
+        await fetch(`${API_CONFIG.BASE_URL}/api/logs/image/${savedLogId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`
           },
           body: JSON.stringify({
-            log_id: logId,
+            log_id: savedLogId,
             log_images_path: data.logImagesPath
           })
         })
       }
 
-      Alert.alert('Success', 'Climb logged!', [
+      Alert.alert('Success', isEdit ? 'Climb updated!' : 'Climb logged!', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ])
     } catch (e) {
@@ -222,6 +379,14 @@ const LogClimbScreen: React.FC = () => {
     } finally {
       setSaving(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={colors.accent.green} />
+      </View>
+    )
   }
 
   return (
@@ -234,7 +399,9 @@ const LogClimbScreen: React.FC = () => {
         >
           <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Log Climb</Text>
+        <Text style={styles.headerTitle}>
+          {isEdit ? 'Edit Climb' : 'Log Climb'}
+        </Text>
         <View style={styles.back} />
       </View>
 
@@ -248,7 +415,7 @@ const LogClimbScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.eyebrow}>I climbed...</Text>
-          <Text style={styles.mountainName}>{mountainName}</Text>
+          <Text style={styles.mountainName}>{mountainNameDisplay}</Text>
 
           {/* Remember the date toggle */}
           <View style={styles.dateRow}>
@@ -329,10 +496,26 @@ const LogClimbScreen: React.FC = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.label}>Photos</Text>
             <Text style={styles.counter}>
-              {images.length}/{MAX_IMAGES}
+              {existingImages.length + images.length}/{MAX_IMAGES}
             </Text>
           </View>
           <View style={styles.photoGrid}>
+            {existingImages.map((img) => (
+              <View key={img.id} style={styles.photoTile}>
+                <Image
+                  source={{ uri: getImageUrl(img.image_path) }}
+                  style={styles.photoImage}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.photoRemove}
+                  onPress={() => removeExistingImage(img)}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Ionicons name="close" size={14} color={colors.white} />
+                </TouchableOpacity>
+              </View>
+            ))}
             {images.map((img) => (
               <View key={img.uri} style={styles.photoTile}>
                 <Image
@@ -349,7 +532,7 @@ const LogClimbScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
             ))}
-            {images.length < MAX_IMAGES && (
+            {existingImages.length + images.length < MAX_IMAGES && (
               <TouchableOpacity
                 style={styles.addTile}
                 onPress={pickImages}
@@ -380,6 +563,27 @@ const LogClimbScreen: React.FC = () => {
                 <Ionicons name="close" size={18} color={colors.text.tertiary} />
               </TouchableOpacity>
             </View>
+          ) : hasExistingGpx ? (
+            <View style={styles.gpxRow}>
+              <Ionicons
+                name="trail-sign"
+                size={18}
+                color={colors.accent.green}
+              />
+              <Text style={styles.gpxName} numberOfLines={1}>
+                Existing GPX route
+              </Text>
+              <TouchableOpacity
+                onPress={removeExistingGpx}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={colors.error.text}
+                />
+              </TouchableOpacity>
+            </View>
           ) : (
             <TouchableOpacity
               style={styles.addGpx}
@@ -392,14 +596,16 @@ const LogClimbScreen: React.FC = () => {
           )}
 
           <TouchableOpacity
-            style={[styles.submit, saving && styles.disabled]}
+            style={[styles.submit, (saving || loading) && styles.disabled]}
             onPress={submit}
-            disabled={saving}
+            disabled={saving || loading}
           >
             {saving ? (
               <ActivityIndicator color={colors.black} />
             ) : (
-              <Text style={styles.submitText}>SUBMIT</Text>
+              <Text style={styles.submitText}>
+                {isEdit ? 'UPDATE' : 'SUBMIT'}
+              </Text>
             )}
           </TouchableOpacity>
         </ScrollView>
@@ -411,6 +617,12 @@ const LogClimbScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background.primary
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background.primary
   },
   flex: {

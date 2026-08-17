@@ -36,7 +36,8 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const { mountain, user, log_images, climb_report, climb_date } = log
-  const hasImages = log_images.length > 0
+  const uploadedImages = log_images.filter((img) => img.is_uploaded === 'true')
+  const hasImages = uploadedImages.length > 0
   const hasClimbReport = Boolean(climb_report)
 
   // Get countries from the mountain's countries array
@@ -109,7 +110,7 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
               activeOpacity={0.95}
             >
               <Image
-                source={{ uri: getImageUrl(log_images[0].image_path) }}
+                source={{ uri: getImageUrl(uploadedImages[0].image_path) }}
                 style={styles.image}
                 resizeMode="cover"
               />
@@ -122,7 +123,7 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
                 </Text>
               </View>
               {/* Photo count toggle (bottom-right) */}
-              {log_images.length > 1 && (
+              {uploadedImages.length > 1 && (
                 <TouchableOpacity
                   style={styles.imageCountButton}
                   onPress={() => setImagesExpanded((prev) => !prev)}
@@ -131,14 +132,14 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
                   <Text style={styles.imageCountButtonText}>
                     {imagesExpanded
                       ? 'Collapse'
-                      : `+${log_images.length - 1} more`}
+                      : `+${uploadedImages.length - 1} more`}
                   </Text>
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
             {/* Expanded images (inline, like the web) */}
             {imagesExpanded &&
-              log_images.slice(1).map((image) => (
+              uploadedImages.slice(1).map((image) => (
                 <View key={image.id} style={styles.expandedImageWrapper}>
                   <Image
                     source={{ uri: getImageUrl(image.image_path) }}
@@ -204,7 +205,7 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalCounter}>
-              {currentImageIndex + 1} / {log_images.length}
+              {currentImageIndex + 1} / {uploadedImages.length}
             </Text>
             <TouchableOpacity
               style={styles.closeButton}
@@ -226,7 +227,7 @@ export const ClimbLogCard: React.FC<ClimbLogCardProps> = ({
             }}
             scrollEventThrottle={16}
           >
-            {log_images.map((image, index) => (
+            {uploadedImages.map((image, index) => (
               <View key={image.id} style={styles.modalImageContainer}>
                 <Image
                   source={{ uri: getImageUrl(image.image_path) }}

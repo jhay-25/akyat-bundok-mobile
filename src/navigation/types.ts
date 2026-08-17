@@ -47,6 +47,7 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined
   Mountain: { canonicalUrl: string }
   LogClimb: { mountainId: string; mountainName: string }
+  LogUpdate: { logId: string }
   GpxRoute: { routeId: string }
   Log: { logId: string }
 }
